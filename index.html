@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>考试背诵练习</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei",system-ui,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;padding:16px}
+.box{max-width:860px;margin:0 auto}
+h1{text-align:center;color:#fff;font-size:28px;padding:16px 0 4px;text-shadow:0 2px 8px rgba(0,0,0,.2)}
+.sub{text-align:center;color:rgba(255,255,255,.85);font-size:13px;margin-bottom:14px}
+.stats{display:flex;justify-content:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.s{background:rgba(255,255,255,.15);backdrop-filter:blur(8px);padding:6px 16px;border-radius:16px;color:#fff;text-align:center}
+.s .n{font-size:20px;font-weight:bold}
+.s .l{font-size:11px;opacity:.8}
+.pb{width:100%;height:5px;background:rgba(255,255,255,.2);border-radius:3px;margin:8px 0;overflow:hidden}
+.pb .f{height:100%;background:#fff;border-radius:3px;transition:width .3s}
+.ctrls{display:flex;justify-content:center;gap:8px;margin:10px 0;flex-wrap:wrap}
+.cb{padding:6px 14px;border:2px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;border-radius:16px;cursor:pointer;font-size:13px;transition:.2s}
+.cb:hover,.cb.on{background:rgba(255,255,255,.3);border-color:#fff}
+.search{width:100%;padding:10px 16px;border:none;border-radius:10px;font-size:14px;margin-bottom:12px;background:#fff}
+.card{background:#fff;border-radius:14px;padding:22px;margin-bottom:12px;box-shadow:0 6px 24px rgba(0,0,0,.1);border-left:4px solid #e5e7eb;transition:.3s}
+.card.ok{border-left-color:#22c55e}
+.card.bad{border-left-color:#ef4444}
+.tag{display:inline-block;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:2px 10px;border-radius:10px;font-size:11px;margin-bottom:10px}
+.q{font-size:15px;line-height:1.8;color:#1f2937;margin-bottom:12px;padding:10px;background:#f9fafb;border-radius:8px;white-space:pre-wrap}
+.ans-box{background:#fef2f2;border:2px dashed #fecaca;border-radius:10px;padding:12px;min-height:40px;transition:.3s;cursor:pointer;position:relative}
+.ans-box.hide{color:transparent;background:#f3f4f6;user-select:none}
+.ans-box.hide::after{content:"点击显示答案";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#9ca3af;font-size:13px}
+.ans-box.show{color:#dc2626}
+.ans-txt{line-height:1.8;font-size:14px;white-space:pre-wrap}
+textarea{width:100%;min-height:90px;padding:10px;border:2px solid #e5e7eb;border-radius:8px;font-size:14px;font-family:inherit;line-height:1.6;resize:vertical;margin-top:10px}
+textarea:focus{outline:none;border-color:#667eea;box-shadow:0 0 0 3px rgba(102,126,234,.15)}
+textarea.correct{border-color:#22c55e;background:#f0fdf4}
+textarea.wrong{border-color:#ef4444;background:#fef2f2}
+.fb{margin-top:8px;padding:8px 12px;border-radius:6px;font-size:13px;display:none}
+.fb.show{display:block}
+.fb.ok{background:#dcfce7;color:#166534}
+.fb.no{background:#fef2f2;color:#991b1b}
+.btns{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.btn{padding:7px 16px;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:.2s}
+.btn-p{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff}
+.btn-p:hover{box-shadow:0 3px 10px rgba(102,126,234,.4)}
+.btn-g{background:#22c55e;color:#fff}
+.btn-g:hover{background:#16a34a}
+.btn-r{background:#ef4444;color:#fff}
+.btn-r:hover{background:#dc2626}
+.btn-y{background:#f59e0b;color:#fff}
+.btn-y:hover{background:#d97706}
+.btn-g2{background:#e5e7eb;color:#374151}
+.btn-g2:hover{background:#d1d5db}
+.nav{text-align:center;color:rgba(255,255,255,.7);font-size:13px;margin:6px 0}
+.list-a{background:#fff;border-radius:14px;padding:16px;box-shadow:0 6px 24px rgba(0,0,0,.1)}
+.li{padding:10px 12px;border-bottom:1px solid #f3f4f6;cursor:pointer;transition:.2s;border-radius:6px}
+.li:hover{background:#f9fafb}
+.li .ls{font-size:11px;color:#667eea}
+.li .lq{font-size:13px;color:#374151;margin-top:2px}
+.li .lb{float:right;font-size:15px}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>考试背诵练习</h1>
+<p class="sub">红色为答案。阅读题目后回忆答案，输入后提交检查。</p>
+<div class="stats">
+<div class="s"><div class="n" id="tN">0</div><div class="l">总题数</div></div>
+<div class="s"><div class="n" id="rN">0</div><div class="l">剩余</div></div>
+<div class="s"><div class="n" id="cN" style="color:#86efac">0</div><div class="l">掌握</div></div>
+<div class="s"><div class="n" id="wN" style="color:#fca5a5">0</div><div class="l">需复习</div></div>
+</div>
+<div class="pb"><div class="f" id="pB"></div></div>
+<div class="ctrls">
+<button class="cb on" onclick="mode='顺序';pick();sel()">顺序</button>
+<button class="cb" onclick="mode='随机';pick();sel()">随机</button>
+<button class="cb" onclick="mode='错题';pick();sel()">错题</button>
+<button class="cb" onclick="mode='列表';sel()">列表</button>
+</div>
+<input class="search" id="sBox" placeholder="搜索题目关键词..." oninput="search()">
+<div id="card" class="card">
+<div class="tag" id="tag"></div>
+<div class="q" id="qt"></div>
+<div class="ans-box hide" id="ab" onclick="toggle()"><div class="ans-txt" id="at"></div></div>
+<textarea id="inp" placeholder="在此输入你的答案..."></textarea>
+<div class="fb" id="fb"></div>
+<div class="btns">
+<button class="btn btn-p" onclick="toggle()">显示/隐藏答案</button>
+<button class="btn btn-g" onclick="check()">提交检查</button>
+<button class="btn btn-g2" onclick="clearI()">清除</button>
+</div>
+<div class="btns">
+<button class="btn btn-g2" onclick="prev()">上一题</button>
+<button class="btn btn-g" onclick="markC()">掌握</button>
+<button class="btn btn-y" onclick="markW()">需复习</button>
+<button class="btn btn-g2" onclick="next()">下一题</button>
+</div>
+</div>
+<div class="nav" id="nav"></div>
+<div id="la" class="list-a" style="display:none"></div>
+</div>
+
+<script>
+const A=[{"section": "", "question": "1.1 计算embedding层参数数量（3分）\n请根据下面提供的数据，计算embedding层的参数数量，以B为单位，写出公式和最终的结果。\n模型\t向量维度\t词表大小\t隐藏层数量\t模型大小\n模型A\t4096\t32000\t40\t8B\n模型B\t6656\t32000\t52\t12B", "answer": "公式：embedding层的参数数量=嵌入维度×词表大小\n计算结果：\n模型A embedding层参数数量\n4096*32000 = 0.13B\n模型B embedding层参数数量\n6656*32000 = 0.21B\n"}, {"section": "", "question": "1.2 参数量计算（3分）\n公司领导预计选择一个参数量200B，token2T的大模型进行预训练处理，在30天内计算完成，现有3款设备进行选型，请根据你的理解进行选型。\n设备名称\t设备/卡数量\t单卡显存\t单卡算力\n设备A\t8\t40G\t312TFlops\n设备B\t8\t80G\t216Tflops\n设备C\t8\t80G\t1000TFlops", "answer": "设备选型理由：\n选择设备C作为训练的服务器。单卡显存高，可以更好处理训练时参数；算力高，运行速度快。\n完成训练总时间：\n训练时间（秒） = 8 * 训练的token数量*模型参数量/（卡数*单卡算力*显卡利用率）\n训练时间（天） = 8 * 训练的token数量*模型参数量/（卡数*单卡算力*显卡利用率*3600*24）\n给定训练时长，如何计算所需卡的数量：\n卡数 = 8 * 训练的token数量*模型参数量/（训练时间（天）*单卡算力*显卡利用率*3600*24）\n=8*2*(10**12)*200*(10**9)/(30*1000*(10**12)*0.45*3600*24)\n=2744张卡=343台设备C服务器"}, {"section": "", "question": "1.3 请简述算子开发的流程（3分）\n流程：算子分析", "answer": "分析算子的数学表达式、输入输出的计算逻辑，确定需调用的Ascend接口"}, {"section": "", "question": "1.3 请简述算子开发的流程（3分）\n流程：核函数开发", "answer": "完成环境准备和初步算子分析后，用Ascend C开发核函数"}, {"section": "", "question": "1.3 请简述算子开发的流程（3分）\n流程：NPU运行验证", "answer": "将开发好的算子在NPU上运行，检查算子的适配性与亲和度"}, {"section": "", "question": "1.4 并行处理方式（3分）\n并行方式：模型并行", "answer": "若用户在训练过程中，遇到显存占用过高，甚至超出处理器显存限制，或者面临训练时间过长的问题，可开启模型并行，以此降低单设备显存占用，加快训练速度。\n张量并行是模型并行的一种具体形式。它通过对张量（tensor）进行拆分，将原本一次的张量计算分散到多台设备上并行开展，最后把各设备的计算结果合并为目标张量。"}, {"section": "", "question": "1.4 并行处理方式（3分）\n并行方式：流水线并行", "answer": "在训练模型时，为降低单个设备的存储开销，提升计算效率，减少内存消耗，可将模型加载到多块显卡上进行流水线并行操作。\n把整个网络划分为不同阶段，每个阶段安排在不同的设备上。各阶段以流水分批的方式工作，如同“接力”一般实现并行计算。 正向计算时，每台机器完成本机器上的矩阵乘法（matmul）计算后，通过通信算子将结果发送给下一台机器；同时，下一台机器通过通信算子接收上一台机器的计算结果，并立即开始本机器的矩阵乘法计算。 反向计算时，最后一台机器计算完梯度后，将结果发送给上一台机器；上一台机器收到梯度结果后，随即开始本机器的反向计算。"}, {"section": "", "question": "1.4 并行处理方式（3分）\n并行方式：Ascend自适应重计算", "answer": "该方法尤其适用于训练阶段，特别是在重计算模式下NPU内存仍有较大剩余空间，用户希望进行更细粒度的重计算以追求更优训练性能的场景。\n1. 重计算机制：在训练过程中，不保存前向传播（forward）的输出结果，而是在反向传播（backward）需要时重新进行计算，以此减少显存占用，避免显存溢出。 2. 动态策略选择：依据实时显存状态和训练内存信息，智能挑选最优的重计算方案。 3. 内存管理集成：借助NPU PluggableAllocator接口管理显存，结合swap功能在NPU和CPU之间迁移张量，防止训练中断。 4. 智能灵活：可动态调整重计算策略，无需手动配置。 5. 性能提升：在Llama2模型中，性能提升约12%-16%。 6. 兼容性限制：与完全重计算、独立调度流水线等特性不兼容。 7. 使用便携：通过设置环境变量和简单参数即可使用。"}, {"section": "", "question": "1.5 模型训练微调排查思路（3分）\n现象：NPU利用率低", "answer": "算子不亲和，替换NPU专用算子，提升并行度，增大BatchSize或使用梯度累积。"}, {"section": "", "question": "1.5 模型训练微调排查思路（3分）【考试时这个题可能是1.3题。杭州考场答题卡上可能没该题的表格，需要自己补充表格，考完一定要认真检查】\n现象：NPU利用率周期性变为0", "answer": "网络带宽瓶颈，需异步执行评估/保存（后台线程）。减少同步点频率，如每N个Step保存一次。使用连续数据流，如TFRecord/Petrel OSS流式读取。"}, {"section": "", "question": "1.5 模型训练微调排查思路（3分）【考试时这个题可能是1.3题。杭州考场答题卡上可能没该题的表格，需要自己补充表格，考完一定要认真检查】\n现象：Loss出现NaN", "answer": "1.数据检查 输入数据：检查原始数据或预处理后的数据是否存在异常值 数据增强：确认数据增强操作是否引入数值溢出 2.模型初始化和参数 权重初始化：验证网络初始化是否合理，避免某层因初始值过大导致梯度爆炸 激活函数：检查是否存在梯度消失，爆炸的激活函数 3.梯度分析 梯度裁剪：在反向传播前添加梯度裁剪，限制梯度幅度。 梯度监控：输出各层梯度的均值，最大值，定位异常层。 4.混合精度训练 损失缩放：在使用fp16进行训练时，检查损失缩放参数是否合理，避免小数计算下溢为0 NPU算子兼容性：确认混合精度支持的算子是否覆盖模型所有层操作 5.硬件适配性 NPU算子异常：通过昇腾profiler工具检查是否存在不兼容的算子或计算溢出 内存溢出：监控NPU内存占用，排查因计算错误导致梯度爆炸 6.简化验证 最小复现：极简的数据或模型子结构逐步训练，定位问题模块。 7.固定随机种子：确保实验的可复现性，排除随机性干扰。"}, {"section": "", "question": "1.6 简述使用的设备和作用（2分）\n方式：一台服务器多人使用", "answer": "Ascend Docker Runtime 昇腾容器运行时\n用于为所有的训练或推理作业提供昇腾AI处理器（Ascend NPU）容器化支持，使用户AI作业能够以Docker容器的方式平滑运行在昇腾设备之上。"}, {"section": "", "question": "1.6 简述使用的设备和作用（2分）\n方式：一张显卡多人进行训练和推理", "answer": "Ascend Virtual Instance 昇腾虚拟化实例\n通过资源虚拟化的方式将物理机或虚拟机配置的NPU（昇腾AI处理器）切分为若干份vNPU（虚拟NPU）挂载到容器中使用，虚拟化管理方式能够实现统一不同规格资源的分配和回收处理，满足多用户反复申请/释放的资源操作请求。"}, {"section": "", "question": "1.7模型迁移分析（3分）\n过程：模型选取", "answer": "1. 调研业务需求场景，选取主流仓库模型。 2. 保证选取的模型在第三方平台（如GPU）可成功运行。 3. 明确迁移前模型运行的硬件型号、精度、性能基线。从权威网站或数据平台获取源模型的性能值基线，或在三方平台实测性能基线。"}, {"section": "", "question": "1.7模型迁移分析（3分）\n过程：迁移可行性分析", "answer": "1. 准备NPU环境，获取模型的源码、权重和数据集等文件。 2. 使用迁移分析工具采集目标网络中的模型/算子清单，识别第三方库及目标网络中算子支持情况，分析模型迁移的可行性。 3. 模型迁移需要符合模型选取与约束说明"}, {"section": "", "question": "1.7模型迁移分析（3分）\n过程：性能数据采集与评测", "answer": "1. 在NPU环境上，使用性能分析工具介绍对模型进行性能拆解。 2. 基于性能拆解结果，分析性能瓶颈模块，参照对应性能的概念进行模块分类，明确性能优化方向。"}, {"section": "", "question": "2.1 除人工构建缺陷外，还有哪些自动构建技术，写出其原理（自由4选2）（2分）\n方式：人工构建", "answer": "局限性: 工作量大、多样性不足、管理难度高"}, {"section": "", "question": "2.1 除人工构建缺陷外，还有哪些自动构建技术，写出其原理（自由4选2）（2分）\n方式：\n原理：", "answer": "SELF-QA 以一段语料作为背景知识，使用提示（Prompt）让LLM根据背景知识生成一系列指令问题，然后再以该语料为背景知识，让LLM进行阅读理解并回答上一步提出的问题"}, {"section": "", "question": "2.1 除人工构建缺陷外，还有哪些自动构建技术，写出其原理（自由4选2）（2分）\n方式：\n原理：", "answer": "SELF-ALIGN SELF-ALIGN需要约200条种子数据、16条生成原则和5个原则示例，原则和示例固定，采用论文给定内容即可。该方法可提升“道德”“有帮助”等方面的生成指令的质量，还扩展了self-instruct已生成对抗指令。"}, {"section": "", "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n方式：词粒度", "answer": "优点: 保留语义独立性\n缺点: 1.对于中文等语言，会受分词方式的影响。 2.若基于词构建词汇表，因长尾现象，词汇表可能超大，大词汇表对应的模型需使用大的embedding层，增加内存和时间复杂度。 3.为平衡第2点，词表通常不会太大，但会产生OOV（Out-of-Vocabulary，词汇库外）问题。"}, {"section": "", "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n方式：字符粒度", "answer": "优点: 1.词表规模相对较小（通常仅几十甚至几百）。 2.词汇外（未知）标记（token）少很多，因为每个单词可由字符构建而成。\n缺点: 1.Tokenizer处理后得到的字符表示意义不大，每个字符本身语义较少。例如，学习字母“t”的有意义表述比学习单词“today”困难得多。因此，基于字符的Tokenizer往往会导致性能损失。 2.采用基于单词的Tokenizer时，单词只是单个标记，但转换为字符时，很容易变成10个或更多的token。"}, {"section": "", "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n方式：子词粒度", "answer": "优点: 1.常用词不拆分为更小的子词，低频词分解为有意义的子词，可使用较小词表实现较好覆盖，几乎没有未知token。例如：“football”可能被视为低频词，可分解为“foot”和“ball”。“foot”和“ball”作为独立子词出现频率可能更高，且“football”的含义由“foot”和“ball”复合而成。 2.Tokenizer使模型具有合理词表规模，能学习有意义的表述。此外，基于子词的Tokenizer通过将单词分解为已知子词，可让模型处理从未见过的单词。\n缺点: 1.处理效率低。 2.语义信息不明确。"}, {"section": "", "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n方式：BPE", "answer": "优点: 1. 自动构建词表：BPB算法可自动构建词表，无需手动定义，简化了分词前的准备工作。 2. 处理OOV问题：BPE算法能处理未登录词（Out-of-Vocabulary,OVV）问题，通过合并频繁出现的字符序列生成新词汇，避免传统分词方法可能出现的OOV问题。 3. 灵活性高：BPE算法能灵活识别和生成复杂词组，适用于不同领域和语种的文本处理任务。 4. 减少数据冗余：通过合并频繁出现的字符序列，BPE算法可减少文本中的重复内容，实现数据压缩，降低训练模型的冗余。\n缺点: 1. 参数增加：使用BPE分词后，输入文本长度可能增加，导致模型需学习的参数增多，使模型训练更耗时耗力。 2.语义信息损失：BPE基于字符或子词的合并，可能使一些单字符或单字在缺乏足够上下文时失去原有语义信息。 3. 输入长度增加：BPE虽能处理OVV问题，但可能导致输入文本长度增加，进而增加模型的输入长度和复杂性。"}, {"section": "", "question": "2.3 还有哪些数据预处理的操作，写出其具体作用（自由7选4）（2分）\n流程：\n具体作用：", "answer": "过滤及去重（粗） \t对于Web数据，可以采用URL过滤+页面过滤+hash去重，也可针对特定URL的页面进行过滤\n模糊重复数据删除 \t计算n-gram重复率，过滤重复页面\n数据滤毒&隐私处理 \t匹配敏感词，基于规则识别个人邮箱、电话等隐私数据，进行替换\n数据提纯 \t正则匹配导航栏关键字，删除无关段落\n数据去重 \t依据段落数及其长度过滤短页面"}, {"section": "", "question": "3.1 迁移分析支持度可以从哪四个角度进行分析？（2分）", "answer": "1、算子支持情况分析 \ttorch算子分析，用户提供待分析PyTorch训练脚本，可以快速获得训练脚本中不支持的torch API和cuda API信息\n2、三方库套件分析 \t用户提供待分析的三方库套件源码，可以快速获得源码中不支持的API和cuda信息\n3、动态shape分析 \t用户提供待分析PyTorch训练脚本，可以快速获得训练脚本中动态shape信息\n4、亲和API分析 \t用户提供待分析PyTorch训练脚本，可以快速获得训练脚本中包含的可被替换为亲和API的原生API信息"}, {"section": "", "question": "3.2 模型脚本迁移VS模型训练适配区别（1分）", "answer": "模型脚本迁移：如何把三方平台上的PyTorch模型代码映射到昇腾设备上。推荐使用自动迁移，通过导入一键迁移库的形式，将三方平台上的代码映射为昇腾设备代码。\n模型训练适配：迁移后的优化阶段，需配置环境变量、调整超参数、优化内存/通信性能，并针对NPU特性（如精度敏感、梯度裁剪）提升训练效率与稳定性。\n简言之，迁移解决“能运行”，适配实现“高效稳定运行”。"}, {"section": "", "question": "3.2 什么是模型训练适配（2分）", "answer": "模型训练适配是在模型代码迁移至昇腾NPU后，针对硬件特性进行的深度优化与配置，目的是提升训练效率和稳定性。具体包括： 环境适配：设置NPU专属环境变量、依赖库及启动脚本； 性能调优：优化内存管理、通信效率，调整超参数（如学习率、批次大小）； 稳定性保障：通过梯度裁剪、混合精度训练、异常值检测（如NaN/溢出）避免训练奔溃； 硬件特性适配：利用NPU高并发、低延迟特性，优化算子计算与并行策略。 本质是通过软硬件协同优化，使模型在NPU上达到与GPU相当或更优的训练效果。"}, {"section": "", "question": "4.1.1 微调技术 （3分）\n微调技术：Prefix tuning\n思路：\n可训练参数插入位置：", "answer": "在每一个Transformer层都带上一些virtual token作为前缀，以适应不同的任务。  \n每一层的Prefix向量（K和V前）"}, {"section": "", "question": "4.1.1 微调技术 （3分）\n微调技术：P-tuning\n思路：\n可训练参数插入位置：", "answer": "将Prompt转换为可以学习的Embedding层，并用MLP+LSTM的方式来对Prompt Embedding进行一层处理。相比Prefix Tuning，仅在输入层加入的可微的virtual token；P-tuning的virtual token的位置也不一定是前缀，插入的位置是可选的。 \n输入层Prompt向量+LSTM/MLP编码器"}, {"section": "", "question": "4.1.1 微调技术 （3分）\n微调技术：P-tuning V2\n思路：\n可训练参数插入位置：", "answer": "该方法在每一个Transformer层都加入了Prompt token作为输入，引入多任务学习，针对不同任务采用不同的提示长度。并且回归传统的分类标签范式，而不是映射器。  \n每一层的Prompt向量\n"}, {"section": "", "question": "4.2 Lora技术的优点和原理（1分）", "answer": "优点：\n1.将BA加到W上可以消除推理延迟。\n2.可以通过可插拔的形式切换到不同的任务。\n3.设计的比较好，简单且效果好。\n原理：通过低秩分解来模拟参数的改变量，从而以极小的参数量来实现大模型的间接训练"}, {"section": "", "question": "4.5 写出下面多机微调代码区别和注意事项（1分）", "answer": "代码区别：\n使用msrun方式拉起\nPython运行的代码脚本写到双引号中\n注意事项：\n多机多卡执行脚本进行分布式训练需要分别在不同节点运行脚本，并将参数MASTER_ADDR设置为主节点的ip地址，所有节点设置的ip地址相同，不同节点之间仅参数NODE_RANK不同。\n"}, {"section": "", "question": "4.6 将运行的模型使用其他算力运行时，存储模型参数时，会保留设备的型号等信息，具体应该怎么保存，操作时应该注意什么？（1分）", "answer": "注意事项：\n使用torch.save()存模型前，务必先把参数移到CPU（model.cpu()或m.state_dict().cpu()），避免把显存里的设备号、CUDA版本等硬件信息写进文件，否者换机加载会因设备不匹配直接报错。\n操作步骤：\n模型训练完成后，用户可以通过PyTorch提供的接口保存模型文件（pth文件和pth.tar文件）用于在线推理；或将模型导出ONNX模型，然后通过ATC工具将其转换为适配昇腾AI处理器的.om文件用于离线推理。"}, {"section": "", "question": "5.1 推理参数说明 （3分）\n介绍参数的具体作用\n参数名称：top_k\n作用：\n影响：", "answer": "用于限制仅考虑概率最高的k个候选输出\nK值低时，文本更呆板；k值高时，多样性增加，但可能引入低概率怪词。一般与top_p二选一或同时使用（遵循更严格的参数）。"}, {"section": "", "question": "5.1 推理参数说明 （3分）\n介绍参数的具体作用\n参数名称：temperature\n作用：\n影响：", "answer": "控制AI回答的随机性或创造性，取值范围为0到2，未指定时默认值为1。\n0到1区间内，值越小分布越“尖”，几乎总是选择最高概率词，输出死板；值越大分布越“平”，采样更随机，创造性高但可能不通顺；大于2时易出现乱码。"}, {"section": "", "question": "5.1 推理参数说明 （3分）\n介绍参数的具体作用\n参数名称：Repetition_penalty\n作用：\n影响：", "answer": "是控制生成文本重复程度的关键参数，适当调整可有效提升文本的多样性和可读性。\n1.0时无惩罚；大于1时，值越大越“排斥”重复，可显著减少逐字复读；但大于1.3后可能会避开常见搭配，使语句别扭。通常1.05到1.2为安全范围。"}];
+let D=[...A.map((x,i)=>({...x,_i:i}))],I=0,mode="顺序";
+let C=new Set(),WG=new Set();
+try{const s=localStorage.getItem("ep");if(s){const d=JSON.parse(s);C=new Set(d.c||[]);WG=new Set(d.w||[])}}catch(e){}
+function sv(){localStorage.setItem("ep",JSON.stringify({c:[...C],w:[...WG]}))}
+function sel(){document.querySelectorAll(".cb").forEach(b=>b.classList.remove("on"));event.target.classList.add("on")}
+function pick(){
+document.getElementById("card").style.display="block";document.getElementById("la").style.display="none";
+if(mode==="随机"){D=[...A.map((x,i)=>({...x,_i:i}))];for(let i=D.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[D[i],D[j]]=[D[j],D[i]]}}
+else if(mode==="错题"){D=A.filter((_,i)=>WG.has(i)).map((x,i)=>({...x,_i:A.indexOf(x)}))}
+else{D=[...A.map((x,i)=>({...x,_i:i}))]}
+I=0;r()}
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function r(){
+if(!D.length){document.getElementById("qt").textContent="暂无题目";document.getElementById("nav").textContent="";return}
+if(I<0)I=0;if(I>=D.length)I=D.length-1;
+const it=D[I],ci=it._i;const ok=C.has(ci),bad=WG.has(ci);
+const card=document.getElementById("card");card.className="card"+(ok?" ok":bad?" bad":"");
+document.getElementById("tag").textContent=it.section;
+document.getElementById("qt").textContent=it.question;
+document.getElementById("at").textContent=it.answer||"暂无答案";
+document.getElementById("ab").className="ans-box hide";
+document.getElementById("fb").className="fb";
+const inp=document.getElementById("inp");inp.className="";inp.value="";
+document.getElementById("nav").textContent="第 "+(I+1)+" / "+D.length+" 题";
+up()}
+function toggle(){const b=document.getElementById("ab");b.classList.toggle("hide");b.classList.toggle("show")}
+function clearI(){document.getElementById("inp").value="";document.getElementById("inp").className="";document.getElementById("fb").className="fb";document.getElementById("ab").className="ans-box hide"}
+function check(){
+const inp=document.getElementById("inp"),fb=document.getElementById("fb"),it=D[I];
+const u=inp.value.trim();
+if(!u){fb.className="fb show no";fb.textContent="请先输入答案";return}
+toggle();
+const s=sim(u,it.answer);
+if(s>.7){inp.className="correct";fb.className="fb show ok";fb.textContent="匹配度 "+Math.round(s*100)+"%"}
+else{inp.className="wrong";fb.className="fb show no";fb.textContent="匹配度 "+Math.round(s*100)+"%，请对照答案学习"}
+sv();up()}
+function sim(a,b){if(!a&&!b)return 1;if(!a||!b)return 0;const sa=new Set([...a]),sb=new Set([...b]);let c=0;sa.forEach(x=>{if(sb.has(x))c++});const u=new Set([...sa,...sb]);return c/Math.max(u.size,1)}
+function markC(){const ci=D[I]._i;C.add(ci);WG.delete(ci);sv();next()}
+function markW(){const ci=D[I]._i;WG.add(ci);C.delete(ci);sv();next()}
+function next(){if(I<D.length-1){I++;r()}}
+function prev(){if(I>0){I--;r()}}
+function up(){
+document.getElementById("tN").textContent=A.length;
+document.getElementById("cN").textContent=C.size;
+document.getElementById("wN").textContent=WG.size;
+const dn=new Set([...C,...WG]);
+document.getElementById("rN").textContent=A.length-dn.size;
+document.getElementById("pB").style.width=(D.length?((I+1)/D.length*100):0)+"%"}
+function renderList(){
+document.getElementById("card").style.display="none";document.getElementById("la").style.display="block";
+const a=document.getElementById("la");a.innerHTML="<h3 style='margin-bottom:12px'>全部题目 ("+A.length+")</h3>";
+A.forEach((it,i)=>{const ok=C.has(i),bad=WG.has(i);const bg=ok?"\u2705":bad?"\u274c":"\u2b1c";
+a.innerHTML+="<div class='li' onclick='go("+i+")'><div class='ls'>"+esc(it.section)+"</div><div class='lq'>"+esc(it.question.substring(0,80))+(it.question.length>80?"...":"")+'<span class="lb">'+bg+'</span></div></div>'})}
+function go(i){I=i;D=[...A.map((x,j)=>({...x,_i:j}))];mode="顺序";pick()}
+function search(){
+const q=document.getElementById("sBox").value.trim().toLowerCase();
+if(!q)D=[...A.map((x,i)=>({...x,_i:i}))]
+else D=A.map((x,i)=>({...x,_i:i})).filter(x=>x.question.toLowerCase().includes(q)||x.answer.toLowerCase().includes(q)||x.section.toLowerCase().includes(q));
+I=0;mode="顺序";
+document.getElementById("card").style.display="block";document.getElementById("la").style.display="none";r()}
+document.addEventListener("keydown",e=>{if(e.target.tagName==="TEXTAREA"||e.target.tagName==="INPUT")return;if(e.key==="ArrowRight"||e.key==="Enter")next();if(e.key==="ArrowLeft")prev();if(e.key===" "){e.preventDefault();toggle()}});
+D=[...A.map((x,i)=>({...x,_i:i}))];r();
+
+</script>
+</body>
+</html>
