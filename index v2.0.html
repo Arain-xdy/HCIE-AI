@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HCIE-AI 考试背诵练习</title>
+<style>
+:root{
+  --bg:#f4f5f9; --card:#ffffff; --ink:#1f2937; --ink2:#6b7280; --line:#e8eaf0;
+  --pri:#4f46e5; --pri-soft:#eef0ff; --ok:#10b981; --ok-soft:#e7f8f1;
+  --bad:#ef4444; --bad-soft:#fdecec; --warn:#f59e0b; --warn-soft:#fff5e5;
+  --shadow:0 2px 10px rgba(17,24,39,.06), 0 12px 32px rgba(17,24,39,.05);
+  --radius:14px;
+}
+[data-theme="dark"]{
+  --bg:#0f1117; --card:#181b24; --ink:#e6e8ef; --ink2:#9aa3b5; --line:#252a36;
+  --pri:#7c7bf5; --pri-soft:#232544; --ok:#34d399; --ok-soft:#12281f;
+  --bad:#f87171; --bad-soft:#2a1618; --warn:#fbbf24; --warn-soft:#2a2110;
+  --shadow:0 2px 10px rgba(0,0,0,.4);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--ink); line-height:1.7;
+  -webkit-font-smoothing:antialiased; padding-bottom:80px;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea{font-family:inherit}
+
+/* ---------- header ---------- */
+.hd{max-width:1080px;margin:0 auto;padding:20px 16px 8px}
+.hd-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.brand{font-size:20px;font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.brand small{font-size:12px;font-weight:500;color:var(--ink2);background:var(--card);padding:2px 8px;border-radius:20px;border:1px solid var(--line)}
+.hd-tools{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.search{width:230px;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);font-size:13px;color:var(--ink);outline:none;transition:.2s}
+.search:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-soft)}
+.icon-btn{width:34px;height:34px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:15px;display:grid;place-items:center;transition:.2s}
+.icon-btn:hover{border-color:var(--pri);color:var(--pri)}
+.ghost-btn{padding:8px 12px;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--ink2);transition:.2s}
+.ghost-btn:hover{border-color:var(--pri);color:var(--pri)}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px}
+.stat{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:10px 12px;text-align:left;transition:.18s;position:relative;overflow:hidden;
+}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--pri)}
+.stat .lbl{font-size:11.5px;color:var(--ink2);display:flex;align-items:center;gap:4px}
+.stat .num{font-size:24px;font-weight:700;line-height:1.15;margin-top:2px}
+.stat[data-k="total"] .num{color:var(--pri)}
+.stat[data-k="todo"] .num{color:var(--ink)}
+.stat[data-k="ok"] .num{color:var(--ok)}
+.stat[data-k="bad"] .num{color:var(--bad)}
+.stat[data-k="due"] .num{color:var(--warn)}
+.stat .hint{font-size:10px;color:var(--ink2);opacity:.7}
+
+.pbar{height:6px;background:var(--line);border-radius:4px;overflow:hidden;display:flex}
+.pbar i{display:block;height:100%;transition:width .4s}
+.pbar .pOk{background:var(--ok)}
+.pbar .pBad{background:var(--bad)}
+.legend{display:flex;gap:14px;font-size:11px;color:var(--ink2);margin-top:6px;flex-wrap:wrap}
+.legend span::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px;vertical-align:1px}
+
+/* ---------- navbar ---------- */
+.navbar{
+  position:sticky;top:0;z-index:50;background:color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);
+  padding:8px 0;margin-bottom:18px;
+}
+.navbar-inner{max-width:1080px;margin:0 auto;padding:0 16px;display:flex;gap:18px;overflow-x:auto;scrollbar-width:thin}
+.navbar-inner::-webkit-scrollbar{height:4px}
+.navbar-inner::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+.navgrp{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.navgrp-t{font-size:11px;color:var(--ink2);font-weight:600;white-space:nowrap;padding-right:4px;border-right:1px solid var(--line);margin-right:2px;height:20px;display:flex;align-items:center}
+.nb{
+  min-width:34px;height:26px;padding:0 7px;border-radius:8px;font-size:11px;font-weight:600;
+  background:var(--card);border:1px solid var(--line);color:var(--ink2);transition:.15s;flex-shrink:0;
+}
+.nb:hover{border-color:var(--pri);color:var(--pri);transform:translateY(-1px)}
+.nb.ok{background:var(--ok-soft);border-color:transparent;color:var(--ok)}
+.nb.bad{background:var(--bad-soft);border-color:transparent;color:var(--bad)}
+.nb.due{background:var(--warn-soft);border-color:transparent;color:#b45309}
+.nb.cur{outline:2px solid var(--pri);outline-offset:1px;color:var(--pri);font-weight:700}
+
+/* ---------- main ---------- */
+main{max-width:1080px;margin:0 auto;padding:0 16px}
+.card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);overflow:hidden}
+.card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:14px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(0,0,0,.012),transparent)}
+.badge{background:var(--pri);color:#fff;font-size:13px;font-weight:700;padding:2px 10px;border-radius:8px}
+.chip{font-size:11.5px;padding:2px 9px;border-radius:20px;border:1px solid var(--line);color:var(--ink2);white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.chip.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.chip.due{background:var(--warn-soft);color:#b45309;border-color:transparent}
+.spacer{flex:1}
+.srs{font-size:11.5px;color:var(--ink2)}
+
+.qbody{padding:20px 20px 4px}
+.qbody h3.qtitle{font-size:17px;font-weight:700;line-height:1.6;margin-bottom:10px;letter-spacing:.2px}
+
+/* markdown */
+.md{font-size:14.5px;color:var(--ink);overflow-wrap:anywhere}
+.md p{margin:0 0 8px}
+.md strong{color:var(--ink);font-weight:700}
+.md code{background:var(--pri-soft);color:var(--pri);padding:1px 5px;border-radius:5px;font-size:13px;font-family:ui-monospace,Consolas,monospace}
+.md blockquote{
+  border-left:3px solid var(--warn);background:var(--warn-soft);color:#92400e;
+  margin:8px 0;padding:7px 12px;border-radius:0 8px 8px 0;font-size:13.5px;
+}
+[data-theme="dark"] .md blockquote{color:#fbbf24}
+.md ul,.md ol{margin:4px 0 8px;padding-left:20px}
+.md li{margin:2px 0}
+.md table{border-collapse:collapse;width:100%;margin:10px 0;font-size:13px;display:block;overflow-x:auto;white-space:nowrap}
+.md th,.md td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+.md th{background:var(--pri-soft);color:var(--ink);font-weight:600;white-space:nowrap}
+.md tr:nth-child(even) td{background:rgba(0,0,0,.015)}
+[data-theme="dark"] .md tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+
+/* answer box */
+.answrap{padding:4px 20px 0}
+.ansbar{display:flex;align-items:center;gap:8px;margin:6px 0 8px}
+.ansbar .line{flex:1;height:1px;background:var(--line)}
+.ansbox{
+  background:var(--pri-soft);border-radius:12px;padding:14px 16px;position:relative;
+  transition:.25s;max-height:none;
+}
+.ansbox.hide{background:var(--line);cursor:pointer;min-height:56px;display:flex;align-items:center;justify-content:center}
+.ansbox.hide .md{display:none}
+.ansbox.hide .mask{display:flex}
+.ansbox .mask{display:none;flex-direction:column;align-items:center;gap:2px;color:var(--ink2);font-size:13px}
+.ansbox .mask b{font-size:14px;color:var(--ink)}
+.ansbox .md{color:var(--ink)}
+.ansbox.show .md{color:var(--ink)}
+
+/* input */
+.inwrap{padding:12px 20px 0}
+textarea{
+  width:100%;min-height:110px;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;
+  font-size:14px;line-height:1.7;resize:vertical;background:var(--bg);color:var(--ink);transition:.2s;
+}
+textarea:focus{outline:none;border-color:var(--pri);background:var(--card);box-shadow:0 0 0 3px var(--pri-soft)}
+textarea.pass{border-color:var(--ok);background:var(--ok-soft)}
+textarea.fail{border-color:var(--bad);background:var(--bad-soft)}
+
+.fb{margin:10px 20px 0;padding:10px 14px;border-radius:10px;font-size:13px;display:none}
+.fb.show{display:block}
+.fb.pass{background:var(--ok-soft);color:var(--ok)}
+.fb.fail{background:var(--bad-soft);color:var(--bad)}
+.fb b{font-size:14px}
+
+/* 逐字比对 */
+.diff-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 20px 0}
+.diff-col{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.diff-col h4{font-size:11.5px;color:var(--ink2);font-weight:600;margin-bottom:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
+.diff-col h4 em{font-style:normal;font-size:10.5px;opacity:.75;font-weight:400}
+.diff{white-space:pre-wrap;word-break:break-word;font-size:13.5px;line-height:1.95;max-height:300px;overflow:auto;font-family:inherit}
+.ch-ok{color:#15803d}
+.ch-bad{color:#dc2626;background:rgba(239,68,68,.13);border-radius:3px;text-decoration:line-through;text-decoration-thickness:1px}
+.ch-miss{color:#b45309;background:rgba(245,158,11,.22);border-radius:3px}
+.ch-ign{color:#9ca3af}
+[data-theme="dark"] .ch-ok{color:#4ade80}
+[data-theme="dark"] .ch-bad{color:#f87171;background:rgba(248,113,113,.18)}
+[data-theme="dark"] .ch-miss{color:#fbbf24;background:rgba(251,191,36,.2)}
+@media (max-width:820px){
+  .diff-wrap{grid-template-columns:1fr}
+}
+
+.actions{display:flex;gap:8px;padding:16px 20px 20px;flex-wrap:wrap}
+.btn{padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;transition:.18s;border:1px solid transparent}
+.btn:hover{transform:translateY(-1px)}
+.btn.pri{background:var(--pri);color:#fff;box-shadow:0 3px 10px rgba(79,70,229,.25)}
+.btn.ok{background:var(--ok);color:#fff}
+.btn.bad{background:var(--bad);color:#fff}
+.btn.warn{background:var(--warn);color:#fff}
+.btn.line{background:transparent;border-color:var(--line);color:var(--ink2)}
+.btn.line:hover{border-color:var(--pri);color:var(--pri)}
+.btn.soft{background:var(--bg);color:var(--ink2)}
+.btn.soft:hover{color:var(--pri)}
+
+/* list view */
+.listhead{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.listhead h2{font-size:17px;font-weight:700}
+.listhead .cnt{font-size:12px;color:var(--ink2)}
+.grid{display:grid;gap:10px}
+.it{
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 16px;
+  display:flex;gap:12px;align-items:flex-start;transition:.16s;cursor:pointer;
+}
+.it:hover{border-color:var(--pri);box-shadow:var(--shadow);transform:translateX(2px)}
+.it .ib{background:var(--pri-soft);color:var(--pri);font-size:12px;font-weight:700;padding:2px 8px;border-radius:7px;white-space:nowrap;margin-top:2px}
+.it .ib.ok{background:var(--ok-soft);color:var(--ok)}
+.it .ib.bad{background:var(--bad-soft);color:var(--bad)}
+.it .ib.due{background:var(--warn-soft);color:#b45309}
+.it .ic{flex:1;min-width:0}
+.it .iq{font-size:13.5px;font-weight:600;line-height:1.5}
+.it .im{font-size:11.5px;color:var(--ink2);margin-top:3px}
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:12px;padding:40px;text-align:center;color:var(--ink2);font-size:13.5px}
+
+/* md export panel */
+.sheet-mask{position:fixed;inset:0;background:rgba(15,17,23,.5);backdrop-filter:blur(3px);display:none;z-index:100;padding:24px}
+.sheet-mask.show{display:flex;align-items:center;justify-content:center}
+.sheet{background:var(--card);border-radius:16px;width:min(900px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.sheet-h{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line)}
+.sheet-h b{font-size:15px}
+.sheet-b{overflow:auto;padding:16px 20px}
+.sheet-b pre{font-size:12.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Consolas,monospace;color:var(--ink)}
+.sheet-f{padding:12px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);opacity:0;pointer-events:none;
+  background:#111827;color:#fff;padding:9px 18px;border-radius:10px;font-size:13px;transition:.25s;z-index:200;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 4px;font-size:10.5px;font-family:inherit;color:var(--ink2)}
+
+@media (max-width:720px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat:last-child{grid-column:span 2}
+  .stat .num{font-size:20px}
+  .search{width:100%}
+  .hd-tools{width:100%}
+  .qbody,.answrap,.inwrap,.actions{padding-left:14px;padding-right:14px}
+  .md table{font-size:12px}
+  .actions .btn{flex:1;min-width:calc(50% - 4px)}
+}
+</style>
+</head>
+<body>
+
+<header class="hd">
+  <div class="hd-row">
+    <div class="brand">🎯 HCIE-AI 背诵练习 <small id="verTip">Markdown 版</small></div>
+    <div class="hd-tools">
+      <input class="search" id="search" placeholder="搜索题目 / 答案关键词…">
+      <button class="icon-btn" id="btnTheme" title="切换深色模式">🌙</button>
+      <button class="ghost-btn" id="btnMd" title="查看 / 导出题库 Markdown">MD</button>
+      <button class="ghost-btn" id="btnReset" title="清空所有练习记录">重置</button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <button class="stat" data-k="total"><div class="lbl">总题数</div><div class="num" id="nTotal">0</div><div class="hint">点击查看全部</div></button>
+    <button class="stat" data-k="todo"><div class="lbl">剩余未掌握</div><div class="num" id="nTodo">0</div><div class="hint">点击开始练习</div></button>
+    <button class="stat" data-k="ok"><div class="lbl">已掌握</div><div class="num" id="nOk">0</div><div class="hint">点击查看题库</div></button>
+    <button class="stat" data-k="bad"><div class="lbl">需复习</div><div class="num" id="nBad">0</div><div class="hint">点击查看题库</div></button>
+    <button class="stat" data-k="due"><div class="lbl">今日待复习</div><div class="num" id="nDue">0</div><div class="hint">记忆曲线提醒</div></button>
+  </div>
+  <div class="pbar"><i class="pOk" id="pbOk" style="width:0"></i><i class="pBad" id="pbBad" style="width:0"></i></div>
+  <div class="legend">
+    <span style="color:var(--ok)">已掌握</span>
+    <span style="color:var(--bad)">需复习</span>
+    <span style="color:var(--ink2)">灰色 = 未练习</span>
+  </div>
+</header>
+
+<div class="navbar"><div class="navbar-inner" id="navbar"></div></div>
+
+<main>
+  <!-- 练习视图 -->
+  <section id="viewPractice">
+    <div class="card" id="card">
+      <div class="card-top">
+        <span class="badge" id="cBadge">1.1</span>
+        <span class="chip" id="cCh">第 1 章</span>
+        <span class="chip" id="cStatus">未练习</span>
+        <span class="spacer"></span>
+        <span class="srs" id="cSrs"></span>
+      </div>
+      <div class="qbody"><div class="md" id="qBody"></div></div>
+      <div class="answrap">
+        <div class="ansbar"><span class="srs">答案</span><span class="line"></span><button class="ghost-btn" id="btnToggle" style="padding:4px 10px;font-size:12px">显示 / 隐藏</button></div>
+        <div class="ansbox hide" id="ansBox">
+          <div class="mask"><b>点击显示参考答案</b><span>先自己回忆一遍效果最好</span></div>
+          <div class="md" id="aBody"></div>
+        </div>
+      </div>
+      <div class="inwrap">
+        <textarea id="inp" placeholder="在这里默写答案…（Ctrl+Enter 提交检查，内容自动保存草稿）"></textarea>
+      </div>
+      <div class="fb" id="fb"></div>
+      <div class="diff-wrap" id="diffWrap" style="display:none">
+        <div class="diff-col">
+          <h4>我的答案 <em>绿=写对 · 红=多写或写错 · 灰=标点（不计分）</em></h4>
+          <div class="diff" id="diffUser"></div>
+        </div>
+        <div class="diff-col">
+          <h4>参考答案 <em>绿=已答到 · 黄=漏掉的内容</em></h4>
+          <div class="diff" id="diffAns"></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn pri" id="btnCheck">✓ 提交检查</button>
+        <button class="btn line" id="btnClear">清除</button>
+        <button class="btn soft" id="btnPrev">← 上一题</button>
+        <button class="btn ok" id="btnOk">已掌握</button>
+        <button class="btn bad" id="btnBad">需复习</button>
+        <button class="btn soft" id="btnNext">下一题 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 列表视图 -->
+  <section id="viewList" style="display:none">
+    <div class="listhead">
+      <h2 id="listTitle">全部题目</h2>
+      <span class="cnt" id="listCnt"></span>
+      <span class="spacer" style="flex:1"></span>
+      <button class="ghost-btn" id="btnBackPractice">← 返回练习</button>
+    </div>
+    <div class="grid" id="listGrid"></div>
+  </section>
+</main>
+
+<div class="sheet-mask" id="mdMask">
+  <div class="sheet">
+    <div class="sheet-h"><b>题库 Markdown 源码</b><span class="srs">可直接复制修改后替换页面中的 DATA</span></div>
+    <div class="sheet-b"><pre id="mdOut"></pre></div>
+    <div class="sheet-f">
+      <button class="btn line" id="btnMdClose">关闭</button>
+      <button class="btn pri" id="btnMdCopy">复制全部</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= 数据 ================= */
+const DATA = [
+ {
+  "id": 1,
+  "chapter": 1,
+  "question": "1.1 计算embedding层参数数量（3分）\n请根据下面提供的数据，计算embedding层的参数数量，以B为单位，写出公式和最终的结果。\n| 模型 | 向量维度 | 词表大小 | 隐藏层数量 | 模型大小 |\n|---|---|---|---|---|\n| 模型A | 4096 | 32000 | 40 | 8B |\n| 模型B | 6656 | 32000 | 52 | 12B |",
+  "answer": "**公式：**embedding层的参数数量=嵌入维度×词表大小\n**计算结果：**\n模型A embedding层参数数量\n4096*32000 = 0.13B\n模型B embedding层参数数量\n6656*32000 = 0.21B"
+ },
+ {
+  "id": 2,
+  "chapter": 1,
+  "question": "1.2 参数量计算（3分）\n公司领导预计选择一个参数量200B，token2T的大模型进行预训练处理，在30天内计算完成，现有3款设备进行选型，请根据你的理解进行选型。\n| 设备名称 | 设备/卡数量 | 单卡显存 | 单卡算力 |\n|---|---|---|---|\n| 设备A | 8 | 40G | 312TFlops |\n| 设备B | 8 | 80G | 216Tflops |\n| 设备C | 8 | 80G | 1000TFlops |",
+  "answer": "**设备选型理由：**\n选择设备C作为训练的服务器。单卡显存高，可以更好处理训练时参数；算力高，运行速度快。\n**完成训练总时间：**\n训练时间（秒） = 8 * 训练的token数量*模型参数量/（卡数*单卡算力*显卡利用率）\n训练时间（天） = 8 * 训练的token数量*模型参数量/（卡数*单卡算力*显卡利用率*3600*24）\n给定训练时长，如何计算所需卡的数量：\n卡数 = 8 * 训练的token数量*模型参数量/（训练时间（天）*单卡算力*显卡利用率*3600*24）\n=8*2*(10**12)*200*(10**9)/(30*1000*(10**12)*0.45*3600*24)\n=2744张卡=343台设备C服务器"
+ },
+ {
+  "id": 3,
+  "chapter": 1,
+  "question": "1.3 请简述算子开发的流程（3分）\n> **流程：** 算子分析",
+  "answer": "分析算子的数学表达式、输入输出的计算逻辑，确定需调用的Ascend接口"
+ },
+ {
+  "id": 4,
+  "chapter": 1,
+  "question": "1.3 请简述算子开发的流程（3分）\n> **流程：** 核函数开发",
+  "answer": "完成环境准备和初步算子分析后，用Ascend C开发核函数"
+ },
+ {
+  "id": 5,
+  "chapter": 1,
+  "question": "1.3 请简述算子开发的流程（3分）\n> **流程：** NPU运行验证",
+  "answer": "将开发好的算子在NPU上运行，检查算子的适配性与亲和度"
+ },
+ {
+  "id": 6,
+  "chapter": 1,
+  "question": "1.4 并行处理方式（3分）\n> **并行方式：** 模型并行",
+  "answer": "若用户在训练过程中，遇到显存占用过高，甚至超出处理器显存限制，或者面临训练时间过长的问题，可开启模型并行，以此降低单设备显存占用，加快训练速度。\n张量并行是模型并行的一种具体形式。它通过对张量（tensor）进行拆分，将原本一次的张量计算分散到多台设备上并行开展，最后把各设备的计算结果合并为目标张量。"
+ },
+ {
+  "id": 7,
+  "chapter": 1,
+  "question": "1.4 并行处理方式（3分）\n> **并行方式：** 流水线并行",
+  "answer": "在训练模型时，为降低单个设备的存储开销，提升计算效率，减少内存消耗，可将模型加载到多块显卡上进行流水线并行操作。\n把整个网络划分为不同阶段，每个阶段安排在不同的设备上。各阶段以流水分批的方式工作，如同“接力”一般实现并行计算。 正向计算时，每台机器完成本机器上的矩阵乘法（matmul）计算后，通过通信算子将结果发送给下一台机器；同时，下一台机器通过通信算子接收上一台机器的计算结果，并立即开始本机器的矩阵乘法计算。 反向计算时，最后一台机器计算完梯度后，将结果发送给上一台机器；上一台机器收到梯度结果后，随即开始本机器的反向计算。"
+ },
+ {
+  "id": 8,
+  "chapter": 1,
+  "question": "1.4 并行处理方式（3分）\n> **并行方式：** Ascend自适应重计算",
+  "answer": "该方法尤其适用于训练阶段，特别是在重计算模式下NPU内存仍有较大剩余空间，用户希望进行更细粒度的重计算以追求更优训练性能的场景。\n**1. 重计算机制：**在训练过程中，不保存前向传播（forward）的输出结果，而是在反向传播（backward）需要时重新进行计算，以此减少显存占用，避免显存溢出。 2. 动态策略选择：依据实时显存状态和训练内存信息，智能挑选最优的重计算方案。 3. 内存管理集成：借助NPU PluggableAllocator接口管理显存，结合swap功能在NPU和CPU之间迁移张量，防止训练中断。 4. 智能灵活：可动态调整重计算策略，无需手动配置。 5. 性能提升：在Llama2模型中，性能提升约12%-16%。 6. 兼容性限制：与完全重计算、独立调度流水线等特性不兼容。 7. 使用便携：通过设置环境变量和简单参数即可使用。"
+ },
+ {
+  "id": 9,
+  "chapter": 1,
+  "question": "1.5 模型训练微调排查思路（3分）\n> **现象：** NPU利用率低",
+  "answer": "算子不亲和，替换NPU专用算子，提升并行度，增大BatchSize或使用梯度累积。"
+ },
+ {
+  "id": 10,
+  "chapter": 1,
+  "question": "1.5 模型训练微调排查思路（3分）【考试时这个题可能是1.3题。杭州考场答题卡上可能没该题的表格，需要自己补充表格，考完一定要认真检查】\n> **现象：** NPU利用率周期性变为0",
+  "answer": "网络带宽瓶颈，需异步执行评估/保存（后台线程）。减少同步点频率，如每N个Step保存一次。使用连续数据流，如TFRecord/Petrel OSS流式读取。"
+ },
+ {
+  "id": 11,
+  "chapter": 1,
+  "question": "1.5 模型训练微调排查思路（3分）【考试时这个题可能是1.3题。杭州考场答题卡上可能没该题的表格，需要自己补充表格，考完一定要认真检查】\n> **现象：** Loss出现NaN",
+  "answer": "**1.数据检查 输入数据：**检查原始数据或预处理后的数据是否存在异常值 数据增强：确认数据增强操作是否引入数值溢出 2.模型初始化和参数 权重初始化：验证网络初始化是否合理，避免某层因初始值过大导致梯度爆炸 激活函数：检查是否存在梯度消失，爆炸的激活函数 3.梯度分析 梯度裁剪：在反向传播前添加梯度裁剪，限制梯度幅度。 梯度监控：输出各层梯度的均值，最大值，定位异常层。 4.混合精度训练 损失缩放：在使用fp16进行训练时，检查损失缩放参数是否合理，避免小数计算下溢为0 NPU算子兼容性：确认混合精度支持的算子是否覆盖模型所有层操作 5.硬件适配性 NPU算子异常：通过昇腾profiler工具检查是否存在不兼容的算子或计算溢出 内存溢出：监控NPU内存占用，排查因计算错误导致梯度爆炸 6.简化验证 最小复现：极简的数据或模型子结构逐步训练，定位问题模块。 7.固定随机种子：确保实验的可复现性，排除随机性干扰。"
+ },
+ {
+  "id": 12,
+  "chapter": 1,
+  "question": "1.6 简述使用的设备和作用（2分）\n> **方式：** 一台服务器多人使用",
+  "answer": "| 名称 | 作用 |\n|---|---|\n| Ascend Docker Runtime（昇腾容器运行时） | 用于为所有的训练或推理作业提供昇腾 AI 处理器（Ascend NPU）容器化支持，使用户 AI 作业能够以 Docker 容器的方式平滑运行在昇腾设备之上。 |"
+ },
+ {
+  "id": 13,
+  "chapter": 1,
+  "question": "1.6 简述使用的设备和作用（2分）\n> **方式：** 一张显卡多人进行训练和推理",
+  "answer": "| 名称 | 作用 |\n|---|---|\n| Ascend Virtual Instance（昇腾虚拟化实例） | 通过资源虚拟化的方式将物理机或虚拟机配置的 NPU（昇腾 AI 处理器）切分为若干份 vNPU（虚拟 NPU）挂载到容器中使用；虚拟化管理方式能够统一不同规格资源的分配和回收处理，满足多用户反复申请/释放的资源操作请求。 |"
+ },
+ {
+  "id": 14,
+  "chapter": 1,
+  "question": "1.7模型迁移分析（3分）\n> **过程：** 模型选取",
+  "answer": "1. 调研业务需求场景，选取主流仓库模型。 2. 保证选取的模型在第三方平台（如GPU）可成功运行。 3. 明确迁移前模型运行的硬件型号、精度、性能基线。从权威网站或数据平台获取源模型的性能值基线，或在三方平台实测性能基线。"
+ },
+ {
+  "id": 15,
+  "chapter": 1,
+  "question": "1.7模型迁移分析（3分）\n> **过程：** 迁移可行性分析",
+  "answer": "1. 准备NPU环境，获取模型的源码、权重和数据集等文件。 2. 使用迁移分析工具采集目标网络中的模型/算子清单，识别第三方库及目标网络中算子支持情况，分析模型迁移的可行性。 3. 模型迁移需要符合模型选取与约束说明"
+ },
+ {
+  "id": 16,
+  "chapter": 1,
+  "question": "1.7模型迁移分析（3分）\n> **过程：** 性能数据采集与评测",
+  "answer": "1. 在NPU环境上，使用性能分析工具介绍对模型进行性能拆解。 2. 基于性能拆解结果，分析性能瓶颈模块，参照对应性能的概念进行模块分类，明确性能优化方向。"
+ },
+ {
+  "id": 17,
+  "chapter": 2,
+  "question": "2.1 除人工构建缺陷外，还有哪些自动构建技术，写出其原理（自由4选2）（2分）\n> **方式：** 人工构建",
+  "answer": "**局限性:** 工作量大、多样性不足、管理难度高"
+ },
+ {
+  "id": 18,
+  "chapter": 2,
+  "question": "2.1 除人工构建缺陷外，还有哪些自动构建技术，写出其原理（自由4选2）（2分）\n> **方式：**\n> **原理：**",
+  "answer": "SELF-QA 以一段语料作为背景知识，使用提示（Prompt）让LLM根据背景知识生成一系列指令问题，然后再以该语料为背景知识，让LLM进行阅读理解并回答上一步提出的问题"
+ },
+ {
+  "id": 19,
+  "chapter": 2,
+  "question": "2.1 除人工构建缺陷外，还有哪些自动构建技术，写出其原理（自由4选2）（2分）\n> **方式：**\n> **原理：**",
+  "answer": "SELF-ALIGN SELF-ALIGN需要约200条种子数据、16条生成原则和5个原则示例，原则和示例固定，采用论文给定内容即可。该方法可提升“道德”“有帮助”等方面的生成指令的质量，还扩展了self-instruct已生成对抗指令。"
+ },
+ {
+  "id": 20,
+  "chapter": 2,
+  "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n> **方式：** 词粒度",
+  "answer": "**优点:** 保留语义独立性\n**缺点:** 1.对于中文等语言，会受分词方式的影响。 2.若基于词构建词汇表，因长尾现象，词汇表可能超大，大词汇表对应的模型需使用大的embedding层，增加内存和时间复杂度。 3.为平衡第2点，词表通常不会太大，但会产生OOV（Out-of-Vocabulary，词汇库外）问题。"
+ },
+ {
+  "id": 21,
+  "chapter": 2,
+  "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n> **方式：** 字符粒度",
+  "answer": "**优点:** 1.词表规模相对较小（通常仅几十甚至几百）。 2.词汇外（未知）标记（token）少很多，因为每个单词可由字符构建而成。\n**缺点:** 1.Tokenizer处理后得到的字符表示意义不大，每个字符本身语义较少。例如，学习字母“t”的有意义表述比学习单词“today”困难得多。因此，基于字符的Tokenizer往往会导致性能损失。 2.采用基于单词的Tokenizer时，单词只是单个标记，但转换为字符时，很容易变成10个或更多的token。"
+ },
+ {
+  "id": 22,
+  "chapter": 2,
+  "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n> **方式：** 子词粒度",
+  "answer": "**优点:** 1.常用词不拆分为更小的子词，低频词分解为有意义的子词，可使用较小词表实现较好覆盖，几乎没有未知token。例如：“football”可能被视为低频词，可分解为“foot”和“ball”。“foot”和“ball”作为独立子词出现频率可能更高，且“football”的含义由“foot”和“ball”复合而成。 2.Tokenizer使模型具有合理词表规模，能学习有意义的表述。此外，基于子词的Tokenizer通过将单词分解为已知子词，可让模型处理从未见过的单词。\n**缺点:** 1.处理效率低。 2.语义信息不明确。"
+ },
+ {
+  "id": 23,
+  "chapter": 2,
+  "question": "2.2 NLP分词（四个都必考，需要全部记忆背诵）（2分）\n> **方式：** BPE",
+  "answer": "**优点:** 1. 自动构建词表：BPB算法可自动构建词表，无需手动定义，简化了分词前的准备工作。 2. 处理OOV问题：BPE算法能处理未登录词（Out-of-Vocabulary,OVV）问题，通过合并频繁出现的字符序列生成新词汇，避免传统分词方法可能出现的OOV问题。 3. 灵活性高：BPE算法能灵活识别和生成复杂词组，适用于不同领域和语种的文本处理任务。 4. 减少数据冗余：通过合并频繁出现的字符序列，BPE算法可减少文本中的重复内容，实现数据压缩，降低训练模型的冗余。\n**缺点:** 1. 参数增加：使用BPE分词后，输入文本长度可能增加，导致模型需学习的参数增多，使模型训练更耗时耗力。 2.语义信息损失：BPE基于字符或子词的合并，可能使一些单字符或单字在缺乏足够上下文时失去原有语义信息。 3. 输入长度增加：BPE虽能处理OVV问题，但可能导致输入文本长度增加，进而增加模型的输入长度和复杂性。"
+ },
+ {
+  "id": 24,
+  "chapter": 2,
+  "question": "2.3 还有哪些数据预处理的操作，写出其具体作用（自由7选4）（2分）\n> **流程：**\n> **具体作用：**",
+  "answer": "| 流程 | 具体作用 |\n|---|---|\n| 过滤及去重（粗） | 对于 Web 数据，可以采用 URL 过滤 + 页面过滤 + hash 去重，也可针对特定 URL 的页面进行过滤 |\n| 模糊重复数据删除 | 计算 n-gram 重复率，过滤重复页面 |\n| 数据滤毒 & 隐私处理 | 匹配敏感词，基于规则识别个人邮箱、电话等隐私数据，进行替换 |\n| 数据提纯 | 正则匹配导航栏关键字，删除无关段落 |\n| 数据去重 | 依据段落数及其长度过滤短页面 |"
+ },
+ {
+  "id": 25,
+  "chapter": 3,
+  "question": "3.1 迁移分析支持度可以从哪四个角度进行分析？（2分）",
+  "answer": "| 角度 | 说明 |\n|---|---|\n| 1、算子支持情况分析 | torch 算子分析：用户提供待分析 PyTorch 训练脚本，可以快速获得训练脚本中不支持的 torch API 和 cuda API 信息 |\n| 2、三方库套件分析 | 用户提供待分析的三方库套件源码，可以快速获得源码中不支持的 API 和 cuda 信息 |\n| 3、动态 shape 分析 | 用户提供待分析 PyTorch 训练脚本，可以快速获得训练脚本中动态 shape 信息 |\n| 4、亲和 API 分析 | 用户提供待分析 PyTorch 训练脚本，可以快速获得训练脚本中包含的可被替换为亲和 API 的原生 API 信息 |"
+ },
+ {
+  "id": 26,
+  "chapter": 3,
+  "question": "3.2 模型脚本迁移VS模型训练适配区别（1分）",
+  "answer": "> **模型脚本迁移：** 如何把三方平台上的PyTorch模型代码映射到昇腾设备上。推荐使用自动迁移，通过导入一键迁移库的形式，将三方平台上的代码映射为昇腾设备代码。\n> **模型训练适配：** 迁移后的优化阶段，需配置环境变量、调整超参数、优化内存/通信性能，并针对NPU特性（如精度敏感、梯度裁剪）提升训练效率与稳定性。\n简言之，迁移解决“能运行”，适配实现“高效稳定运行”。"
+ },
+ {
+  "id": 27,
+  "chapter": 3,
+  "question": "3.2 什么是模型训练适配（2分）",
+  "answer": "模型训练适配是在模型代码迁移至昇腾NPU后，针对硬件特性进行的深度优化与配置，目的是提升训练效率和稳定性。具体包括： 环境适配：设置NPU专属环境变量、依赖库及启动脚本； 性能调优：优化内存管理、通信效率，调整超参数（如学习率、批次大小）； 稳定性保障：通过梯度裁剪、混合精度训练、异常值检测（如NaN/溢出）避免训练奔溃； 硬件特性适配：利用NPU高并发、低延迟特性，优化算子计算与并行策略。 本质是通过软硬件协同优化，使模型在NPU上达到与GPU相当或更优的训练效果。"
+ },
+ {
+  "id": 28,
+  "chapter": 4,
+  "question": "4.1.1 微调技术 （3分）\n> **微调技术：** Prefix tuning\n> **思路：**\n> **可训练参数插入位置：**",
+  "answer": "| 项目 | 内容 |\n|---|---|\n| 思路 | 在每一个 Transformer 层都带上一些 virtual token 作为前缀，以适应不同的任务。 |\n| 可训练参数插入位置 | 每一层的 Prefix 向量（K 和 V 前） |"
+ },
+ {
+  "id": 29,
+  "chapter": 4,
+  "question": "4.1.1 微调技术 （3分）\n> **微调技术：** P-tuning\n> **思路：**\n> **可训练参数插入位置：**",
+  "answer": "| 项目 | 内容 |\n|---|---|\n| 思路 | 将 Prompt 转换为可以学习的 Embedding 层，并用 MLP+LSTM 的方式对 Prompt Embedding 做一层处理。相比 Prefix Tuning，仅在输入层加入可微的 virtual token；virtual token 的位置也不一定是前缀，插入位置可选。 |\n| 可训练参数插入位置 | 输入层 Prompt 向量 + LSTM/MLP 编码器 |"
+ },
+ {
+  "id": 30,
+  "chapter": 4,
+  "question": "4.1.1 微调技术 （3分）\n> **微调技术：** P-tuning V2\n> **思路：**\n> **可训练参数插入位置：**",
+  "answer": "| 项目 | 内容 |\n|---|---|\n| 思路 | 在每一个 Transformer 层都加入 Prompt token 作为输入，引入多任务学习，针对不同任务采用不同的提示长度；回归传统分类标签范式，而不是映射器。 |\n| 可训练参数插入位置 | 每一层的 Prompt 向量 |"
+ },
+ {
+  "id": 31,
+  "chapter": 4,
+  "question": "4.2 Lora技术的优点和原理（1分）",
+  "answer": "**优点：**\n1.将BA加到W上可以消除推理延迟。\n2.可以通过可插拔的形式切换到不同的任务。\n3.设计的比较好，简单且效果好。\n> **原理：** 通过低秩分解来模拟参数的改变量，从而以极小的参数量来实现大模型的间接训练"
+ },
+ {
+  "id": 32,
+  "chapter": 4,
+  "question": "4.5 写出下面多机微调代码区别和注意事项（1分）",
+  "answer": "**代码区别：**\n使用msrun方式拉起\nPython运行的代码脚本写到双引号中\n**注意事项：**\n多机多卡执行脚本进行分布式训练需要分别在不同节点运行脚本，并将参数MASTER_ADDR设置为主节点的ip地址，所有节点设置的ip地址相同，不同节点之间仅参数NODE_RANK不同。"
+ },
+ {
+  "id": 33,
+  "chapter": 4,
+  "question": "4.6 将运行的模型使用其他算力运行时，存储模型参数时，会保留设备的型号等信息，具体应该怎么保存，操作时应该注意什么？（1分）",
+  "answer": "**注意事项：**\n使用torch.save()存模型前，务必先把参数移到CPU（model.cpu()或m.state_dict().cpu()），避免把显存里的设备号、CUDA版本等硬件信息写进文件，否者换机加载会因设备不匹配直接报错。\n**操作步骤：**\n模型训练完成后，用户可以通过PyTorch提供的接口保存模型文件（pth文件和pth.tar文件）用于在线推理；或将模型导出ONNX模型，然后通过ATC工具将其转换为适配昇腾AI处理器的.om文件用于离线推理。"
+ },
+ {
+  "id": 34,
+  "chapter": 5,
+  "question": "5.1 推理参数说明 （3分）\n介绍参数的具体作用\n> **参数名称：** top_k\n> **作用：**\n> **影响：**",
+  "answer": "| 项目 | 内容 |\n|---|---|\n| 作用 | 用于限制仅考虑概率最高的 k 个候选输出。 |\n| 影响 | K 值低时文本更呆板；K 值高时多样性增加，但可能引入低概率怪词。一般与 top_p 二选一或同时使用（遵循更严格的参数）。 |"
+ },
+ {
+  "id": 35,
+  "chapter": 5,
+  "question": "5.1 推理参数说明 （3分）\n介绍参数的具体作用\n> **参数名称：** temperature\n> **作用：**\n> **影响：**",
+  "answer": "| 项目 | 内容 |\n|---|---|\n| 作用 | 控制 AI 回答的随机性或创造性，取值范围 0 到 2，未指定时默认 1。 |\n| 影响 | 0 到 1 区间内，值越小分布越“尖”，几乎总是选最高概率词，输出死板；值越大分布越“平”，采样更随机，创造性高但可能不通顺；大于 2 易出现乱码。 |"
+ },
+ {
+  "id": 36,
+  "chapter": 5,
+  "question": "5.1 推理参数说明 （3分）\n介绍参数的具体作用\n> **参数名称：** Repetition_penalty\n> **作用：**\n> **影响：**",
+  "answer": "| 项目 | 内容 |\n|---|---|\n| 作用 | 控制生成文本重复程度的关键参数，适当调整可有效提升文本多样性可读性。 |\n| 影响 | 1.0 时无惩罚；大于 1 时值越大越“排斥”重复，可显著减少逐字复读；但大于 1.3 后可能避开常见搭配，使语句别扭。通常 1.05～1.2 为安全范围。 |"
+ }
+];
+
+/* ================= 常量 ================= */
+const CH_NAMES = {1:'第1章 人工智能选型及流程梳理',2:'第2章 数据工程',3:'第3章 模型迁移',4:'第4章 模型微调',5:'第5章 大模型推理'};
+const INTERVALS = [1,2,4,7,15,30,60];          // 艾宾浩斯复习间隔（天）
+const DAY = 86400000;
+const KEY = 'hcai-drill-v3';
+
+/* ================= 状态 ================= */
+let state = load();
+let cur = 0;            // 当前题在 DATA 中的索引
+let view = 'practice';  // practice | list
+let filter = 'all';
+let kw = '';
+
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if(s && s.rec) return s;
+  }catch(e){}
+  return { rec:{}, draft:{} };
+}
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
+}
+function recOf(id){
+  if(!state.rec[id]) state.rec[id] = { level:0, status:'none', last:0, due:0, n:0 };
+  return state.rec[id];
+}
+function dueOf(r){ return r.status === 'ok' && r.due && r.due <= Date.now(); }
+
+/* ================= Markdown 渲染 ================= */
+function esc(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function inline(s){
+  s = esc(s);
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  return s;
+}
+function splitRow(line){
+  let t = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+  return t.split('|').map(x => x.trim());
+}
+function renderMD(src){
+  if(!src) return '';
+  const lines = String(src).replace(/\r/g,'').split('\n');
+  let out = '', i = 0;
+  while(i < lines.length){
+    const line = lines[i];
+
+    // 表格
+    if(/^\s*\|/.test(line) && i+1 < lines.length && /^\s*\|[\s:|-]+\|?\s*$/.test(lines[i+1])){
+      const rows = [];
+      let j = i;
+      while(j < lines.length && /^\s*\|/.test(lines[j])){ rows.push(lines[j]); j++; }
+      const head = splitRow(rows[0]);
+      let tbl = '<table><thead><tr>' + head.map(c=>'<th>'+inline(c)+'</th>').join('') + '</tr></thead><tbody>';
+      for(let k = 2; k < rows.length; k++){
+        const cs = splitRow(rows[k]);
+        tbl += '<tr>' + cs.map(c=>'<td>'+inline(c)+'</td>').join('') + '</tr>';
+      }
+      tbl += '</tbody></table>';
+      out += tbl; i = j; continue;
+    }
+
+    // 引用 / 提示
+    if(/^\s*>\s?/.test(line)){
+      const buf = [];
+      let j = i;
+      while(j < lines.length && /^\s*>\s?/.test(lines[j])){ buf.push(lines[j].replace(/^\s*>\s?/,'')); j++; }
+      out += '<blockquote>' + buf.map(inline).join('<br>') + '</blockquote>';
+      i = j; continue;
+    }
+
+    // 标题
+    let m = line.match(/^(#{1,6})\s+(.*)$/);
+    if(m){
+      const lv = Math.min(m[1].length + 2, 6);
+      out += '<h'+lv+'>'+inline(m[2])+'</h'+lv+'>'; i++; continue;
+    }
+
+    // 无序列表
+    if(/^\s*[-*]\s+/.test(line)){
+      const buf = [];
+      let j = i;
+      while(j < lines.length && /^\s*[-*]\s+/.test(lines[j])){ buf.push(lines[j].replace(/^\s*[-*]\s+/,'')); j++; }
+      out += '<ul>' + buf.map(x=>'<li>'+inline(x)+'</li>').join('') + '</ul>';
+      i = j; continue;
+    }
+
+    // 有序列表
+    if(/^\s*\d+[.、]\s+/.test(line)){
+      const buf = [];
+      let j = i;
+      while(j < lines.length && /^\s*\d+[.、]\s+/.test(lines[j])){ buf.push(lines[j].replace(/^\s*\d+[.、]\s+/,'')); j++; }
+      out += '<ol>' + buf.map(x=>'<li>'+inline(x)+'</li>').join('') + '</ol>';
+      i = j; continue;
+    }
+
+    // 空行
+    if(!line.trim()){ i++; continue; }
+
+    // 普通段落
+    const buf = [];
+    let j = i;
+    while(j < lines.length && lines[j].trim() && !/^\s*[|>#]/.test(lines[j]) && !/^\s*[-*]\s+/.test(lines[j]) && !/^\s*\d+[.、]\s+/.test(lines[j])){
+      buf.push(lines[j]); j++;
+    }
+    out += '<p>' + buf.map(inline).join('<br>') + '</p>';
+    i = j;
+  }
+  return out;
+}
+
+/* ================= 工具 ================= */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._tm);
+  t._tm = setTimeout(()=>t.classList.remove('show'), 1600);
+}
+function noOf(item){
+  const m = (item.question||'').match(/^\s*(\d+(?:\.\d+)*)/);
+  return m ? m[1] : String(item.id);
+}
+// 同一题号有多个子问时，显示为 1.3·1 / 1.3·2
+function labelOf(idx){
+  const n = noOf(DATA[idx]);
+  let total = 0, order = 0;
+  DATA.forEach((it, i)=>{
+    if(noOf(it) === n){ total++; if(i <= idx) order++; }
+  });
+  return total > 1 ? n + '·' + order : n;
+}
+function titleOf(item){
+  const first = (item.question||'').split('\n')[0] || '';
+  return first.replace(/^\s*\d+(?:\.\d+)*\s*/, '').replace(/【[\s\S]*?】/g,'').trim();
+}
+function bodyOf(item){
+  const lines = (item.question||'').split('\n');
+  return lines.slice(1).join('\n').trim();
+}
+
+/* ================= 统计 ================= */
+function stats(){
+  let ok = 0, bad = 0, due = 0;
+  DATA.forEach(it=>{
+    const r = state.rec[it.id] || {status:'none'};
+    if(r.status === 'ok'){ ok++; if(dueOf(r)) due++; }
+    else if(r.status === 'bad') bad++;
+  });
+  return { total: DATA.length, ok, bad, due, todo: DATA.length - ok };
+}
+function refreshStats(){
+  const s = stats();
+  document.getElementById('nTotal').textContent = s.total;
+  document.getElementById('nTodo').textContent = s.todo;
+  document.getElementById('nOk').textContent = s.ok;
+  document.getElementById('nBad').textContent = s.bad;
+  document.getElementById('nDue').textContent = s.due;
+  const pbOk = document.getElementById('pbOk'), pbBad = document.getElementById('pbBad');
+  pbOk.style.width = (s.ok / s.total * 100) + '%';
+  pbBad.style.width = (s.bad / s.total * 100) + '%';
+}
+
+/* ================= 导航栏 ================= */
+function buildNav(){
+  const wrap = document.getElementById('navbar');
+  const cnt = {}, seen = {};
+  DATA.forEach(it=>{ const n = noOf(it); cnt[n] = (cnt[n] || 0) + 1; });
+  let html = '';
+  let lastCh = null;
+  DATA.forEach((it, idx)=>{
+    if(it.chapter !== lastCh){
+      if(lastCh !== null) html += '</div>';
+      html += '<div class="navgrp"><span class="navgrp-t">CH' + it.chapter + '</span>';
+      lastCh = it.chapter;
+    }
+    const n = noOf(it);
+    seen[n] = (seen[n] || 0) + 1;
+    const label = cnt[n] > 1 ? n + '·' + seen[n] : n;
+    html += '<button class="nb" data-idx="'+idx+'" title="'+esc(n + ' ' + titleOf(it))+'">'+label+'</button>';
+  });
+  html += '</div>';
+  wrap.innerHTML = html;
+  wrap.onclick = e=>{
+    const b = e.target.closest('.nb');
+    if(!b) return;
+    goPractice(Number(b.dataset.idx));
+  };
+}
+function paintNav(){
+  document.querySelectorAll('.nb').forEach(b=>{
+    const idx = Number(b.dataset.idx), it = DATA[idx];
+    const r = state.rec[it.id] || {status:'none'};
+    b.className = 'nb';
+    if(r.status === 'ok') b.classList.add(dueOf(r) ? 'due' : 'ok');
+    else if(r.status === 'bad') b.classList.add('bad');
+    if(view === 'practice' && idx === cur) b.classList.add('cur');
+  });
+}
+
+/* ================= 练习视图 ================= */
+function renderCard(){
+  const it = DATA[cur];
+  document.getElementById('cBadge').textContent = labelOf(cur);
+  document.getElementById('cCh').textContent = CH_NAMES[it.chapter] || ('第' + it.chapter + '章');
+
+  const r = recOf(it.id);
+  updateStatusChips();
+
+  // 题面：第一行作标题
+  const first = (it.question||'').split('\n')[0] || '';
+  const rest = bodyOf(it);
+  document.getElementById('qBody').innerHTML =
+      '<h3 class="qtitle">' + inline(first) + '</h3>' + (rest ? renderMD(rest) : '');
+
+  document.getElementById('aBody').innerHTML = renderMD(it.answer || '（无参考答案）');
+
+  // 重置答案区与草稿
+  document.getElementById('ansBox').classList.remove('show');
+  document.getElementById('ansBox').classList.add('hide');
+  const inp = document.getElementById('inp');
+  inp.value = state.draft[it.id] || '';
+  inp.className = '';
+  document.getElementById('fb').className = 'fb';
+  document.getElementById('fb').innerHTML = '';
+  hideDiff();
+
+  paintNav();
+  document.querySelector('.nb.cur')?.scrollIntoView({block:'nearest', inline:'center'});
+
+  // 自动滚到顶部
+  window.scrollTo({top: 0, behavior: 'auto'});
+}
+
+function updateStatusChips(){
+  const it = DATA[cur], r = recOf(it.id);
+  const st = document.getElementById('cStatus');
+  st.className = 'chip';
+  if(r.status === 'ok'){ st.classList.add('ok'); st.textContent = '已掌握 · Lv' + r.level; }
+  else if(r.status === 'bad'){ st.classList.add('bad'); st.textContent = '需复习'; }
+  else { st.textContent = '未练习'; }
+
+  const srs = document.getElementById('cSrs');
+  if(r.status === 'ok' && r.due){
+    const d = Math.round((r.due - Date.now()) / DAY * 10) / 10;
+    srs.textContent = d <= 0 ? '⏰ 已到复习时间' : '下次复习：' + d + ' 天后（Lv' + r.level + '）';
+  } else if(r.status === 'bad'){
+    srs.textContent = '↻ 建议尽快重做';
+  } else {
+    srs.textContent = '记忆曲线：掌握后 1/2/4/7/15/30 天提醒';
+  }
+}
+
+function toggleAns(force){  const box = document.getElementById('ansBox');
+  const show = force !== undefined ? force : box.classList.contains('hide');
+  box.classList.toggle('hide', !show);
+  box.classList.toggle('show', show);
+}
+
+/* ---- 逐字比对：忽略标点 / 中英文符号 / 空格 / 大小写 ---- */
+const IGN_CH = /[\s\p{P}\p{S}]/u;
+
+function normChar(c){
+  if(IGN_CH.test(c)) return null;   // 忽略的字符（不参与比对）
+  return c.toLowerCase();
+}
+function tokenize(s){
+  const arr = [];
+  for(const ch of String(s)) arr.push({ ch: ch, n: normChar(ch) });
+  return arr;
+}
+// 去掉 Markdown 标记，让参考答案以纯文本呈现
+function stripMD(s){
+  return String(s)
+    .replace(/\*\*/g, '')
+    .replace(/`/g, '')
+    .replace(/^\s*>\s?/gm, '')
+    .replace(/^\s*\|?\s*-{3,}.*$/gm, '')
+    .replace(/^\s*\|/gm, '')
+    .replace(/\|\s*$/gm, '')
+    .replace(/\s*\|\s*/g, '  ');
+}
+// 对归一化后的字符序列做 LCS，得到匹配字符下标
+function diffChars(user, answer){
+  const u = tokenize(user), a = tokenize(answer);
+  const ui = [], ai = [];
+  u.forEach((t, i)=>{ if(t.n !== null) ui.push(i); });
+  a.forEach((t, i)=>{ if(t.n !== null) ai.push(i); });
+  const m = ui.length, n = ai.length, W = n + 1;
+  const dp = new Uint16Array((m + 1) * W);
+  for(let i = 1; i <= m; i++){
+    const ci = u[ui[i - 1]].n;
+    for(let j = 1; j <= n; j++){
+      dp[i * W + j] = (ci === a[ai[j - 1]].n)
+        ? dp[(i - 1) * W + j - 1] + 1
+        : Math.max(dp[(i - 1) * W + j], dp[i * W + j - 1]);
+    }
+  }
+  const mu = new Set(), ma = new Set();
+  let i = m, j = n;
+  while(i > 0 && j > 0){
+    if(u[ui[i - 1]].n === a[ai[j - 1]].n && dp[i * W + j] === dp[(i - 1) * W + j - 1] + 1){
+      mu.add(ui[i - 1]); ma.add(ai[j - 1]); i--; j--;
+    } else if(dp[(i - 1) * W + j] >= dp[i * W + j - 1]){
+      i--;
+    } else {
+      j--;
+    }
+  }
+  return { u: u, a: a, mu: mu, ma: ma, hit: mu.size, total: n };
+}
+function paintDiff(elId, tokens, matched, badCls){
+  document.getElementById(elId).innerHTML = tokens.map((t, i)=>{
+    if(t.n === null) return '<span class="ch-ign">' + esc(t.ch) + '</span>';
+    if(matched.has(i)) return '<span class="ch-ok">' + esc(t.ch) + '</span>';
+    return '<span class="' + badCls + '">' + esc(t.ch) + '</span>';
+  }).join('');
+}
+function hideDiff(){
+  document.getElementById('diffWrap').style.display = 'none';
+}
+
+function check(){
+  const it = DATA[cur];
+  const user = document.getElementById('inp').value.trim();
+  const fb = document.getElementById('fb');
+  const inp = document.getElementById('inp');
+  if(!user){
+    toast('先写点内容再提交吧');
+    inp.focus(); return;
+  }
+
+  const d = diffChars(user, stripMD(it.answer || ''));
+  const rate = d.total ? d.hit / d.total : 0;
+  const pct = Math.round(rate * 100);
+  const pass = rate >= 0.55;
+
+  fb.className = 'fb show ' + (pass ? 'pass' : 'fail');
+  fb.innerHTML = pass
+    ? '<b>✓ 逐字匹配 ' + pct + '%（' + d.hit + '/' + d.total + ' 字）</b> — 主要表述已答到，对照下方红黄标记补细节。'
+    : '<b>✗ 逐字匹配 ' + pct + '%（' + d.hit + '/' + d.total + ' 字）</b> — 红色是多写/写错，右侧黄色是漏掉的内容。';
+  inp.className = pass ? 'pass' : 'fail';
+
+  // 逐字高亮
+  paintDiff('diffUser', d.u, d.mu, 'ch-bad');
+  paintDiff('diffAns', d.a, d.ma, 'ch-miss');
+  document.getElementById('diffWrap').style.display = '';
+  document.getElementById('diffWrap').style.opacity = 1;
+
+  if(pass) mark('ok', true);
+  else mark('bad', true);
+}
+
+/* ---- 掌握 / 需复习（记忆曲线） ---- */
+function mark(kind, silent){
+  const it = DATA[cur];
+  const r = recOf(it.id);
+  const now = Date.now();
+
+  if(kind === 'ok'){
+    // 60 秒内重复提交不重复升级，避免连点刷等级
+    if(!(r.last && now - r.last < 60000 && r.status === 'ok')){
+      r.level = Math.min((r.level || 0) + 1, INTERVALS.length);
+      r.last = now;
+      r.due = now + INTERVALS[r.level - 1] * DAY;
+    }
+    r.status = 'ok';
+  } else {
+    r.level = 0;
+    r.status = 'bad';
+    r.last = now;
+    r.due = now;
+  }
+  r.n = (r.n || 0) + 1;
+
+  save();
+  refreshStats();
+  paintNav();
+  updateStatusChips();
+  if(!silent){
+    if(kind === 'ok') toast('已掌握 · ' + INTERVALS[Math.max(r.level - 1, 0)] + ' 天后提醒复习');
+    else toast('已标记需复习');
+  }
+}
+
+/* ---- 翻页 ---- */
+function goPractice(idx){
+  cur = Math.max(0, Math.min(DATA.length - 1, idx));
+  view = 'practice';
+  document.getElementById('viewPractice').style.display = '';
+  document.getElementById('viewList').style.display = 'none';
+  renderCard();
+}
+function next(){ if(cur < DATA.length - 1) goPractice(cur + 1); else toast('已经是最后一题啦'); }
+function prev(){ if(cur > 0) goPractice(cur - 1); else toast('已经是第一题'); }
+
+/* ================= 列表视图 ================= */
+const FILTER_TITLE = {all:'全部题目', todo:'剩余未掌握', ok:'已掌握题库', bad:'需复习题库', due:'今日待复习'};
+function matchFilter(it){
+  const r = state.rec[it.id] || {status:'none'};
+  if(filter === 'all') return true;
+  if(filter === 'todo') return r.status !== 'ok';
+  if(filter === 'ok') return r.status === 'ok';
+  if(filter === 'bad') return r.status === 'bad';
+  if(filter === 'due') return dueOf(r);
+  return true;
+}
+function matchKw(it){
+  if(!kw) return true;
+  const s = (it.question + ' ' + it.answer).toLowerCase();
+  return s.includes(kw.toLowerCase());
+}
+function renderList(){
+  view = 'list';
+  document.getElementById('viewPractice').style.display = 'none';
+  document.getElementById('viewList').style.display = '';
+  document.getElementById('listTitle').textContent = FILTER_TITLE[filter] || '题库';
+
+  const items = DATA.map((it, idx)=>({it, idx})).filter(o=>matchFilter(o.it) && matchKw(o.it));
+  document.getElementById('listCnt').textContent = items.length + ' / ' + DATA.length + ' 题';
+
+  const grid = document.getElementById('listGrid');
+  if(!items.length){
+    grid.innerHTML = '<div class="empty">🎉 这里没有题目，换个筛选条件试试</div>';
+    return;
+  }
+  grid.innerHTML = items.map(o=>{
+    const it = o.it, r = state.rec[it.id] || {status:'none'};
+    let cls = '', txt = '未练';
+    if(r.status === 'ok'){
+      if(dueOf(r)){ cls = 'due'; txt = '待复习'; }
+      else { cls = 'ok'; txt = 'Lv' + r.level; }
+    } else if(r.status === 'bad'){ cls = 'bad'; txt = '需复习'; }
+    const meta = [CH_NAMES[it.chapter]],
+      extra = [];
+    if(r.status === 'ok' && r.due){
+      const d = Math.round((r.due - Date.now()) / DAY * 10) / 10;
+      extra.push(d <= 0 ? '已到期' : d + ' 天后复习');
+    }
+    return '<div class="it" data-idx="'+o.idx+'">'
+      + '<span class="ib '+cls+'">'+labelOf(o.idx)+'</span>'
+      + '<div class="ic"><div class="iq">'+esc(titleOf(it))+'</div>'
+      + '<div class="im">'+esc(meta.join(' · ')) + (extra.length ? ' · ' + esc(extra.join(' · ')) : '') + '</div></div>'
+      + '<span class="chip '+cls+'">'+txt+'</span>'
+      + '</div>';
+  }).join('');
+
+  grid.onclick = e=>{
+    const d = e.target.closest('.it');
+    if(d) goPractice(Number(d.dataset.idx));
+  };
+
+  paintNav();
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ================= Markdown 导出 ================= */
+function buildMD(){
+  let out = '';
+  let lastCh = null;
+  DATA.forEach(it=>{
+    if(it.chapter !== lastCh){
+      out += '\n# ' + CH_NAMES[it.chapter] + '\n';
+      lastCh = it.chapter;
+    }
+    const first = (it.question||'').split('\n')[0];
+    out += '\n## ' + first + '\n\n';
+    const rest = bodyOf(it);
+    if(rest) out += rest + '\n\n';
+    out += '**答案**\n\n' + (it.answer||'') + '\n';
+  });
+  return out.trim();
+}
+
+/* ================= 绑定 ================= */
+function bind(){
+  document.getElementById('inp').addEventListener('input', e=>{
+    state.draft[DATA[cur].id] = e.target.value;
+    save();
+    // 修改后旧比对结果视为过期
+    const dw = document.getElementById('diffWrap');
+    if(dw.style.display !== 'none') dw.style.opacity = .4;
+  });
+  document.getElementById('inp').addEventListener('keydown', e=>{
+    if(e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); check(); }
+  });
+
+  document.getElementById('btnCheck').onclick = check;
+  document.getElementById('btnClear').onclick = ()=>{
+    const inp = document.getElementById('inp');
+    inp.value = ''; inp.className = '';
+    state.draft[DATA[cur].id] = ''; save();
+    document.getElementById('fb').className = 'fb';
+    hideDiff();
+    inp.focus();
+  };
+  document.getElementById('btnToggle').onclick = ()=>toggleAns();
+  document.getElementById('ansBox').onclick = ()=>{ if(document.getElementById('ansBox').classList.contains('hide')) toggleAns(true); };
+  document.getElementById('btnPrev').onclick = prev;
+  document.getElementById('btnNext').onclick = next;
+  document.getElementById('btnOk').onclick = ()=>mark('ok');
+  document.getElementById('btnBad').onclick = ()=>mark('bad');
+  document.getElementById('btnBackPractice').onclick = ()=>goPractice(cur);
+
+  // 统计卡 → 筛选列表
+  document.querySelectorAll('.stat').forEach(btn=>{
+    btn.onclick = ()=>{
+      const k = btn.dataset.k;
+      filter = ({total:'all', todo:'todo', ok:'ok', bad:'bad', due:'due'})[k] || 'all';
+      renderList();
+    };
+  });
+
+  // 搜索
+  document.getElementById('search').addEventListener('input', e=>{
+    kw = e.target.value.trim();
+    if(kw){
+      if(view !== 'list'){ filter = 'all'; renderList(); }
+      else renderList();
+    } else if(view === 'list'){
+      renderList();
+    }
+  });
+
+  // 主题
+  document.getElementById('btnTheme').onclick = ()=>{
+    const dark = document.body.dataset.theme === 'dark';
+    document.body.dataset.theme = dark ? '' : 'dark';
+    document.getElementById('btnTheme').textContent = dark ? '🌙' : '☀️';
+    localStorage.setItem(KEY + '-theme', dark ? '' : 'dark');
+  };
+  if(localStorage.getItem(KEY + '-theme') === 'dark'){
+    document.body.dataset.theme = 'dark';
+    document.getElementById('btnTheme').textContent = '☀️';
+  }
+
+  // Markdown 面板
+  const mask = document.getElementById('mdMask');
+  document.getElementById('btnMd').onclick = ()=>{
+    document.getElementById('mdOut').textContent = buildMD();
+    mask.classList.add('show');
+  };
+  document.getElementById('btnMdClose').onclick = ()=>mask.classList.remove('show');
+  mask.onclick = e=>{ if(e.target === mask) mask.classList.remove('show'); };
+  document.getElementById('btnMdCopy').onclick = async ()=>{
+    try{ await navigator.clipboard.writeText(buildMD()); toast('已复制题库 Markdown'); }
+    catch(e){ toast('复制失败，请手动选中复制'); }
+  };
+
+  // 重置
+  document.getElementById('btnReset').onclick = ()=>{
+    if(!confirm('确定清空所有练习记录（掌握 / 需复习 / 草稿）吗？')) return;
+    state = { rec:{}, draft:{} };
+    save(); refreshStats(); buildNav(); paintNav(); renderCard();
+    toast('已重置');
+  };
+
+  // 键盘
+  document.addEventListener('keydown', e=>{
+    const tag = (e.target.tagName || '').toLowerCase();
+    if(tag === 'input' || tag === 'textarea') return;
+    if(e.key === 'ArrowRight') next();
+    if(e.key === 'ArrowLeft') prev();
+    if(e.key === ' '){ e.preventDefault(); toggleAns(); }
+  });
+}
+
+/* ================= 启动 ================= */
+buildNav();
+refreshStats();
+// 打开即优先回到最早到期的待复习题
+(function(){
+  let idx = -1;
+  DATA.forEach((it, i)=>{
+    const r = state.rec[it.id];
+    if(r && dueOf(r) && (idx < 0 || r.due < state.rec[DATA[idx].id].due)) idx = i;
+  });
+  if(idx >= 0) cur = idx;
+})();
+renderCard();
+bind();
+(function(){
+  const s = stats();
+  if(s.due) setTimeout(()=>toast('⏰ 记忆曲线提醒：今日有 ' + s.due + ' 题待复习'), 900);
+})();
+</script>
+</body>
+</html>
