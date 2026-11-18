@@ -308,19 +308,52 @@ kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;bo
   .md table{font-size:12px}
   .actions .btn{flex:1;min-width:calc(50% - 4px)}
 }
+/* ---------- 多题库 / 批量导入 ---------- */
+.bank-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px}
+.bb-lbl{font-size:12px;color:var(--ink2);font-weight:600}
+.bank-sel{padding:6px 10px;border-radius:9px;border:1px solid var(--line);background:var(--bg);
+  color:var(--ink);font-size:13px;font-weight:600;outline:none;max-width:260px}
+.bank-sel:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-soft)}
+.bb-sp{flex:1}
+.bank-bar .btn.mini{padding:6px 10px;font-size:12px}
+.bulk-tabs{display:flex;gap:6px;margin-bottom:10px}
+.bulk-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+#bulkText{width:100%;height:210px;padding:12px;border-radius:10px;border:1px solid var(--line);
+  background:var(--bg);color:var(--ink);font-family:ui-monospace,Consolas,monospace;font-size:12.5px;
+  line-height:1.6;resize:vertical;outline:none}
+#bulkText:focus{border-color:var(--pri);box-shadow:0 0 0 3px var(--pri-soft)}
+.bulk-hint{font-size:12px;color:var(--ink2);line-height:1.75;background:var(--bg);border-radius:10px;
+  padding:10px 12px;border-left:3px solid var(--pri);margin-top:10px}
+.bulk-hint code{background:var(--card);padding:1px 5px;border-radius:5px;border:1px solid var(--line);font-size:11.5px}
+.bulk-prev{margin-top:10px;font-size:12.5px;color:var(--ink2);max-height:160px;overflow:auto;
+  white-space:pre-wrap;line-height:1.7}
+.bulk-prev b{color:var(--ok)}
+.bulk-prev .err{color:var(--bad)}
 </style>
 </head>
 <body>
 
 <header class="hd">
   <div class="hd-row">
-    <div class="brand">🎯 HCIE-AI 背诵练习 <small id="verTip">Markdown 版</small></div>
+    <div class="brand">🎯 HCIE-AI 背诵练习 <small id="verTip">多题库 v4</small></div>
     <div class="hd-tools">
       <input class="search" id="search" placeholder="搜索题目 / 答案关键词…">
       <button class="icon-btn" id="btnTheme" title="切换深色模式">🌙</button>
       <button class="ghost-btn" id="btnMd" title="编辑题库：增删改题目，实时生效">✏️ 编辑</button>
       <button class="ghost-btn" id="btnReset" title="清空所有练习记录">重置</button>
     </div>
+  </div>
+
+  <div class="bank-bar">
+    <span class="bb-lbl">题库</span>
+    <select class="bank-sel" id="bankSel" title="切换题库"></select>
+    <span class="srs" id="bankCnt">—</span>
+    <span class="bb-sp"></span>
+    <button class="ghost-btn btn mini" id="btnBankNew" title="新建一个空题库">＋ 新建</button>
+    <button class="ghost-btn btn mini" id="btnBankRename" title="重命名当前题库">重命名</button>
+    <button class="ghost-btn btn mini" id="btnBankDel" title="删除当前题库">删除</button>
+    <button class="btn pri mini" id="btnBulk" title="批量粘贴 / 导入文件">📥 批量导入</button>
   </div>
 
   <div class="stats">
@@ -343,6 +376,14 @@ kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;bo
 <main>
   <!-- 练习视图 -->
   <section id="viewPractice">
+    <div id="emptyTip" style="display:none;background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:46px 20px;text-align:center">
+      <div style="font-size:40px;margin-bottom:14px">📥</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">这个题库还是空的</div>
+      <div style="font-size:13px;color:var(--ink2);line-height:2">
+        点顶部 <b>📥 批量导入</b>，一次贴进几十道题（支持从 Excel 直接复制）<br>
+        或者点 <b>✏️ 编辑</b> 手动逐题添加
+      </div>
+    </div>
     <div class="card" id="card">
       <div class="card-top">
         <span class="badge" id="cBadge">1.1</span>
@@ -481,6 +522,53 @@ kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;bo
     </div>
   </div>
 </div>
+
+<div class="sheet-mask" id="bulkMask">
+  <div class="sheet" style="width:min(780px,100%)">
+    <div class="sheet-h"><b>📥 批量导入题目</b><span class="srs" id="bulkN">—</span></div>
+    <div class="sheet-b" style="max-height:72vh">
+      <div class="cfg-row">
+        <label>导入到题库</label>
+        <select id="bulkTarget" style="width:100%;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font-size:13px"></select>
+      </div>
+      <div class="cfg-row">
+        <label>选择文件（.csv / .tsv / .txt / .json）</label>
+        <div class="bulk-row" style="margin:0">
+          <button class="btn line mini" id="bulkPickFile">选择文件…</button>
+          <button class="btn line mini" id="bulkTplCsv">下载 CSV 模板</button>
+          <button class="btn line mini" id="bulkTplJson">下载 JSON 模板</button>
+          <span class="srs" id="bulkFileName">未选择文件</span>
+        </div>
+      </div>
+      <div class="cfg-row">
+        <label>粘贴内容（可直接从 Excel 复制多列过来）</label>
+        <textarea id="bulkText" placeholder="题号&#9;章节&#9;题目&#9;答案&#10;1.1&#9;第1章 人工智能选型&#9;请简述华为 AI 方案的三个层次&#9;1) 硬件层
+2) 平台层
+3) 应用层"></textarea>
+      </div>
+      <div class="bulk-hint">
+        <b>支持两种格式</b><br>
+        ① <b>表格文本</b>（CSV / TSV / 用 | 分隔）：<code>题号,章节,题目,答案</code>，首行可以是表头（自动识别并跳过）；
+        列数可以是 4 列 / 3 列(题号,题目,答案) / 2 列(题目,答案)。<br>
+        ② <b>JSON</b>：<code>{"chapters":{"1":"第1章 …"},"items":[{"id":1,"chapter":1,"question":"1.1 …","answer":"…"}]}</code><br>
+        ③ 单元格内换行用 <code>\n</code> 表示；行首 <code>#</code> 开头的整行会被忽略（可写注释）。
+      </div>
+      <div class="bulk-row">
+        <label class="srs" style="display:flex;align-items:center;gap:6px">
+          <input type="checkbox" id="bulkAppend" checked> 追加到现有题目（不勾选 = 替换整个题库）
+        </label>
+        <span class="bb-sp"></span>
+        <button class="btn line mini" id="bulkPreviewBtn">解析预览</button>
+      </div>
+      <div class="bulk-prev" id="bulkPrev"></div>
+    </div>
+    <div class="sheet-f">
+      <button class="btn line" id="bulkClose">关闭</button>
+      <button class="btn pri" id="bulkDo">开始导入</button>
+    </div>
+  </div>
+</div>
+<input type="file" id="bulkFile" accept=".csv,.tsv,.txt,.json,text/plain,application/json" style="display:none">
 
 <div class="toast" id="toast"></div>
 
@@ -704,19 +792,31 @@ kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;bo
 ]</script>
 <script type="application/json" id="bankChapters">{"1": "第1章 人工智能选型及流程梳理", "2": "第2章 数据工程", "3": "第3章 模型迁移", "4": "第4章 模型微调", "5": "第5章 大模型推理"}</script>
 <script>
-/* ================= 数据 ================= */
+/* ================= 数据（多题库模型） ================= */
 const BUILTIN_JSON = document.getElementById('bankData').textContent;
 const BUILTIN_CH = document.getElementById('bankChapters').textContent;
-let DATA = JSON.parse(BUILTIN_JSON);
 
-/* ================= 常量 ================= */
-let CH_NAMES = JSON.parse(BUILTIN_CH);
 const INTERVALS = [1,2,4,7,15,30,60];          // 艾宾浩斯复习间隔（天）
 const DAY = 86400000;
 const KEY = 'hcai-drill-v3';
-const BANK_KEY = KEY + '-bank';
+const BANK_KEY = KEY + '-bank';                // 旧版单题库存储（仅迁移用）
+const BANKS_KEY = KEY + '-banks';              // 新版多题库存储
 const GH_KEY = KEY + '-gh';
 const bankMeta = { dirty: false, sha: '', remote: '' };
+
+/* BANKS[i] = { id, name, chapters, items }；DATA / CH_NAMES 始终指向当前题库 */
+let BANKS = [];
+let activeBank = '';
+let DATA = [];
+let CH_NAMES = {};
+
+function uid(p){ return (p || 'bk') + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function bankById(id){ for(let i = 0; i < BANKS.length; i++) if(BANKS[i].id === id) return BANKS[i]; return null; }
+function curBank(){ return bankById(activeBank) || BANKS[0] || null; }
+function syncRefs(){ const b = curBank(); if(b){ DATA = b.items; CH_NAMES = b.chapters; } }
+function newBank(name, chapters, items){
+  return { id: uid('bk'), name: name || '未命名题库', chapters: chapters || {}, items: items || [] };
+}
 
 /* GitHub 同步配置（token 只存在浏览器本地） */
 let gh = (function(){
@@ -731,29 +831,62 @@ function saveGH(){
   try{ localStorage.setItem(GH_KEY, JSON.stringify(gh)); }catch(e){}
 }
 
-/* 载入用户在浏览器里改过的题库（有则覆盖内置） */
-(function(){
-  try{
-    const b = JSON.parse(localStorage.getItem(BANK_KEY) || 'null');
-    if(b && Array.isArray(b.items) && b.items.length){
-      DATA = b.items;
-      if(b.chapters) CH_NAMES = b.chapters;
-      bankMeta.dirty = !!b.dirty;
-      bankMeta.sha = b.sha || '';
-      bankMeta.remote = b.remote || '';
-    }
-  }catch(e){}
+/* 载入：新版多题库 -> 旧版单题库 -> 页面内置 */
+(function initBanks(){
+  let loaded = null;
+  try{ loaded = JSON.parse(localStorage.getItem(BANKS_KEY) || 'null'); }catch(e){}
+  if(loaded && Array.isArray(loaded.banks) && loaded.banks.length){
+    BANKS = loaded.banks.map(function(b){
+      return {
+        id: b.id || uid('bk'),
+        name: b.name || '未命名题库',
+        chapters: b.chapters || {},
+        items: Array.isArray(b.items) ? b.items : (Array.isArray(b.data) ? b.data : [])
+      };
+    });
+    activeBank = bankById(loaded.active) ? loaded.active : BANKS[0].id;
+    bankMeta.dirty = !!loaded.dirty;
+    bankMeta.sha = loaded.sha || '';
+    bankMeta.remote = loaded.remote || '';
+  } else {
+    let items = JSON.parse(BUILTIN_JSON);
+    let chapters = JSON.parse(BUILTIN_CH);
+    let name = 'HCIE-AI 真题';
+    try{
+      const old = JSON.parse(localStorage.getItem(BANK_KEY) || 'null');
+      if(old && Array.isArray(old.items) && old.items.length){
+        items = old.items;
+        if(old.chapters) chapters = old.chapters;
+        name = 'HCIE-AI 真题（本地）';
+        bankMeta.dirty = !!old.dirty;
+        bankMeta.sha = old.sha || '';
+        bankMeta.remote = old.remote || '';
+      }
+    }catch(e){}
+    const b = newBank(name, chapters, items);
+    b.id = 'main';
+    BANKS = [b];
+    activeBank = b.id;
+  }
+  syncRefs();
 })();
-function saveBank(forceDirty){
-  if(forceDirty === true) bankMeta.dirty = true;
-  if(forceDirty === false) bankMeta.dirty = false;
+
+function saveBanksRaw(){
   try{
-    localStorage.setItem(BANK_KEY, JSON.stringify({
-      items: DATA, chapters: CH_NAMES,
+    localStorage.setItem(BANKS_KEY, JSON.stringify({
+      version: 2,
+      active: activeBank,
+      banks: BANKS,
       dirty: bankMeta.dirty, sha: bankMeta.sha, remote: bankMeta.remote
     }));
   }catch(e){}
+}
+function saveBank(forceDirty){
+  if(forceDirty === true) bankMeta.dirty = true;
+  if(forceDirty === false) bankMeta.dirty = false;
+  saveBanksRaw();
   if(typeof paintSync === 'function') paintSync();
+  if(typeof paintBanks === 'function') paintBanks();
 }
 
 /* ================= 状态 ================= */
@@ -773,9 +906,12 @@ function load(){
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
 }
+function pk(id){ return (activeBank || 'main') + '|' + id; }   // 记录键：题库|题目
+function recGet(id){ return state.rec[pk(id)] || { level:0, status:'none', last:0, due:0, n:0 }; }
 function recOf(id){
-  if(!state.rec[id]) state.rec[id] = { level:0, status:'none', last:0, due:0, n:0 };
-  return state.rec[id];
+  const k = pk(id);
+  if(!state.rec[k]) state.rec[k] = { level:0, status:'none', last:0, due:0, n:0 };
+  return state.rec[k];
 }
 function dueOf(r){ return r.status === 'ok' && r.due && r.due <= Date.now(); }
 
@@ -897,7 +1033,7 @@ function bodyOf(item){
 function stats(){
   let ok = 0, bad = 0, due = 0;
   DATA.forEach(it=>{
-    const r = state.rec[it.id] || {status:'none'};
+    const r = recGet(it.id);
     if(r.status === 'ok'){ ok++; if(dueOf(r)) due++; }
     else if(r.status === 'bad') bad++;
   });
@@ -945,7 +1081,7 @@ function buildNav(){
 function paintNav(){
   document.querySelectorAll('.nb').forEach(b=>{
     const idx = Number(b.dataset.idx), it = DATA[idx];
-    const r = state.rec[it.id] || {status:'none'};
+    const r = recGet(it.id);
     b.className = 'nb';
     if(r.status === 'ok') b.classList.add(dueOf(r) ? 'due' : 'ok');
     else if(r.status === 'bad') b.classList.add('bad');
@@ -998,7 +1134,7 @@ function renderCard(){
   document.getElementById('ansBox').classList.remove('show');
   document.getElementById('ansBox').classList.add('hide');
   const inp = document.getElementById('inp');
-  inp.value = state.draft[it.id] || '';
+  inp.value = state.draft[pk(it.id)] || '';
   inp.className = '';
   document.getElementById('fb').className = 'fb';
   document.getElementById('fb').innerHTML = '';
@@ -1176,7 +1312,7 @@ function prev(){ if(cur > 0) goPractice(cur - 1); else toast('已经是第一题
 /* ================= 列表视图 ================= */
 const FILTER_TITLE = {all:'全部题目', todo:'剩余未掌握', ok:'已掌握题库', bad:'需复习题库', due:'今日待复习'};
 function matchFilter(it){
-  const r = state.rec[it.id] || {status:'none'};
+  const r = recGet(it.id);
   if(filter === 'all') return true;
   if(filter === 'todo') return r.status !== 'ok';
   if(filter === 'ok') return r.status === 'ok';
@@ -1204,7 +1340,7 @@ function renderList(){
     return;
   }
   grid.innerHTML = items.map(o=>{
-    const it = o.it, r = state.rec[it.id] || {status:'none'};
+    const it = o.it, r = recGet(it.id);
     let cls = '', txt = '未练';
     if(r.status === 'ok'){
       if(dueOf(r)){ cls = 'due'; txt = '待复习'; }
@@ -1305,13 +1441,23 @@ function ghPutFile(text, message, sha){
     method: 'PUT', body: JSON.stringify(body)
   });
 }
-function bankPayload(items, chapters){
+function bankPayload(){
   return JSON.stringify({
-    version: 1,
+    version: 2,
     updated: new Date().toISOString(),
-    chapters: chapters || CH_NAMES,
-    items: items || DATA
+    active: activeBank,
+    banks: BANKS.map(function(b){
+      return { id: b.id, name: b.name, chapters: b.chapters, items: b.items };
+    })
   }, null, 1);
+}
+
+/* 判断快照里是否有可用题库数据（兼容 v1 / v2） */
+function hasBankData(o){
+  if(!o) return false;
+  if(Array.isArray(o.banks) && o.banks.length) return true;
+  if(Array.isArray(o.items) && o.items.length) return true;
+  return false;
 }
 
 let ghErrMsg = '', ghErrAt = 0;
@@ -1339,17 +1485,36 @@ function paintSync(){
 
 /* 用远端数据替换当前题库，尽量停留在同一题 */
 function applyRemote(o, sha){
+  if(!o) return;
   const keepId = DATA[cur] ? DATA[cur].id : null;
-  DATA = o.items;
-  if(o.chapters) CH_NAMES = o.chapters;
+  if(Array.isArray(o.banks) && o.banks.length){
+    /* v2：整套多题库 */
+    BANKS = o.banks.map(function(b){
+      return {
+        id: b.id || uid('bk'),
+        name: b.name || '未命名题库',
+        chapters: b.chapters || {},
+        items: Array.isArray(b.items) ? b.items : []
+      };
+    });
+    activeBank = bankById(o.active) ? o.active : BANKS[0].id;
+  } else if(Array.isArray(o.items) && o.items.length){
+    /* v1：单题库，落进当前题库 */
+    const cb = curBank();
+    if(!cb) return;
+    cb.items = o.items;
+    if(o.chapters) cb.chapters = o.chapters;
+  } else {
+    return;
+  }
+  syncRefs();
   if(sha !== undefined) bankMeta.sha = sha || bankMeta.sha;
   bankMeta.dirty = false;
-  const i = DATA.findIndex(it=>it.id === keepId);
+  const i = DATA.findIndex(function(it){ return it.id === keepId; });
   cur = i >= 0 ? i : 0;
   if(ED.idx >= DATA.length) ED.idx = 0;
-  buildNav(); refreshStats();
-  if(view === 'practice') renderCard(); else renderList();
-  renderDwList(); fillDrawerForm();
+  refreshAllViews();
+  paintBanks();
   saveBank(false);
 }
 
@@ -1361,7 +1526,7 @@ async function initSync(){
     const r = await fetch(encodeURI(gh.path) + '?v=' + Date.now(), { cache: 'no-store' });
     if(r.ok){
       const o = await r.json();
-      if(o && Array.isArray(o.items) && o.items.length){
+      if(hasBankData(o)){
         if(bankMeta.dirty){ paintSync(); return; }   // 本地有未上传改动，不覆盖
         applyRemote(o, bankMeta.sha);
         bankMeta.remote = 'pages';
@@ -1377,7 +1542,7 @@ async function initSync(){
       bankMeta.sha = f.sha;
       if(!got){
         const o = JSON.parse(unb64(f.content));
-        if(o && Array.isArray(o.items) && o.items.length) applyRemote(o, f.sha);
+        if(hasBankData(o)) applyRemote(o, f.sha);
       }
       saveBank();
     }catch(e){}
@@ -1517,15 +1682,17 @@ async function ghRollback(){
   b.disabled = true; b.textContent = '回滚中…';
   try{
     const f = await ghGetFile();                 // 当前 sha，保证快进提交
+    applyRemote(s, undefined);                   // 先把快照载入内存
     const res = await ghPutFile(
-      bankPayload(s.items, s.chapters),
+      bankPayload(),
       '回滚题库到 ' + s.sha.slice(0, 7) + ' · ' + new Date().toLocaleString('zh-CN'),
       f.sha
     );
     bankMeta.sha = res.content.sha;
+    bankMeta.dirty = false;
     previewSnap = null;
     document.getElementById('pvbar').classList.remove('show');
-    applyRemote({ items: s.items, chapters: s.chapters }, bankMeta.sha);
+    saveBank(false);
     toast('✓ 已回滚到 ' + s.sha.slice(0, 7) + ' 并提交');
   }catch(e){
     ghErr('回滚失败', e);
@@ -1586,6 +1753,339 @@ async function ghTestCfg(){
 }
 
 /* ================= 题库编辑器（抽屉） ================= */
+/* ================= 多题库管理 ================= */
+function paintBanks(){
+  const sel = document.getElementById('bankSel');
+  if(sel){
+    sel.innerHTML = BANKS.map(function(b){
+      return '<option value="' + esc(b.id) + '">' + esc(b.name) + '（' + b.items.length + ' 题）</option>';
+    }).join('');
+    sel.value = activeBank;
+  }
+  const c = document.getElementById('bankCnt');
+  if(c) c.textContent = '共 ' + BANKS.length + ' 个 · 当前 ' + DATA.length + ' 题';
+}
+
+function refreshAllViews(){
+  const empty = !DATA.length;
+  const tip = document.getElementById('emptyTip');
+  const card = document.getElementById('card');
+  if(tip) tip.style.display = empty ? 'block' : 'none';
+  if(card) card.style.display = empty ? 'none' : '';
+  if(empty){
+    const nav = document.getElementById('navbar');
+    if(nav) nav.innerHTML = '<span class="srs" style="padding:6px 10px">当前题库还没有题目</span>';
+    refreshStats();
+    renderDwList(); fillDrawerForm();
+    return;
+  }
+  buildNav(); refreshStats();
+  if(view === 'practice') renderCard(); else renderList();
+  renderDwList(); fillDrawerForm();
+}
+
+function switchBank(id){
+  if(!bankById(id) || id === activeBank) return;
+  activeBank = id;
+  syncRefs();
+  cur = 0; ED.idx = 0;
+  refreshAllViews();
+  paintBanks();
+  saveBank();
+  toast('已切换到「' + curBank().name + '」');
+}
+
+function bankAdd(name){
+  const b = newBank(name, {}, []);
+  BANKS.push(b);
+  activeBank = b.id;
+  syncRefs();
+  cur = 0; ED.idx = 0;
+  refreshAllViews();
+  paintBanks();
+  saveBank(true);
+  return b;
+}
+
+function bankRename(){
+  const b = curBank();
+  if(!b) return;
+  const name = prompt('重命名题库', b.name);
+  if(name === null) return;
+  const t = name.trim();
+  if(!t) return;
+  b.name = t;
+  saveBank(true);
+  paintBanks();
+  toast('已重命名为「' + t + '」');
+}
+
+function bankDel(){
+  const b = curBank();
+  if(!b) return;
+  if(BANKS.length <= 1){ toast('✗ 至少要保留一个题库'); return; }
+  if(!confirm('删除题库「' + b.name + '」（' + b.items.length + ' 道题）？\n该题库的练习记录也会一并清除，此操作不可撤销。')) return;
+  const pre = b.id + '|';
+  Object.keys(state.rec).forEach(function(k){ if(k.indexOf(pre) === 0) delete state.rec[k]; });
+  if(state.draft) Object.keys(state.draft).forEach(function(k){ if(k.indexOf(pre) === 0) delete state.draft[k]; });
+  save();
+  BANKS = BANKS.filter(function(x){ return x.id !== b.id; });
+  activeBank = BANKS[0].id;
+  syncRefs();
+  cur = 0; ED.idx = 0;
+  refreshAllViews();
+  paintBanks();
+  saveBank(true);
+  toast('已删除题库「' + b.name + '」');
+}
+
+/* ================= 批量导入 ================= */
+/* 按记录切分表格文本：支持双引号包裹、引号内换行 / 分隔符、"" 转义（Excel 导出即此格式） */
+function parseTable(text, sep){
+  const rows = [];
+  let row = [], cur = '', q = false;
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(q){
+      if(ch === '"'){
+        if(text[i + 1] === '"'){ cur += '"'; i++; }
+        else q = false;
+      } else cur += ch;
+    } else if(ch === '"'){ q = true; }
+    else if(ch === sep){ row.push(cur); cur = ''; }
+    else if(ch === '\n'){ row.push(cur); rows.push(row); row = []; cur = ''; }
+    else cur += ch;
+  }
+  row.push(cur);
+  if(row.length > 1 || String(row[0]).trim()) rows.push(row);
+  return rows;
+}
+
+/* 单元格里用字面 \n 表示换行 */
+function unescNl(s){
+  return String(s == null ? '' : s).replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+}
+
+function chapterIdOf(rawv, chapters){
+  const t = String(rawv == null ? '' : rawv).trim();
+  if(!t) return null;
+  if(/^\d+$/.test(t)) return Number(t);
+  for(const k in chapters){ if(chapters[k] === t) return Number(k); }
+  const m = t.match(/第\s*(\d+)\s*章/);
+  if(m) return Number(m[1]);
+  return -1;                       // -1 = 需要新建章节
+}
+
+const BULK_HEAD = {
+  no: ['题号', '序号', '编号', 'no', 'id', 'number'],
+  ch: ['章节', '章', 'chapter', 'ch'],
+  q:  ['题目', '题干', '问题', 'question', 'title', 'stem'],
+  a:  ['答案', '解答', 'answer', 'ans']
+};
+
+function parseBulk(text){
+  const raw = String(text || '').replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').trim();
+  if(!raw) throw new Error('内容为空');
+  /* --- JSON --- */
+  if(raw.charAt(0) === '[' || raw.charAt(0) === '{'){
+    let o;
+    try{ o = JSON.parse(raw); }catch(e){ throw new Error('JSON 解析失败：' + e.message); }
+    const arr = Array.isArray(o) ? o : (o.items || o.data || []);
+    if(!Array.isArray(arr) || !arr.length) throw new Error('JSON 里没有题目数组');
+    const items = arr.map(function(it){
+      return {
+        no: String(it.no != null ? it.no : (it.id != null ? it.id : '')).trim(),
+        chapterRaw: String(it.chapter == null ? '' : it.chapter).trim(),
+        question: unescNl(it.question || it.q || it.title || it.stem || ''),
+        answer: unescNl(it.answer || it.a || it.ans || '')
+      };
+    });
+    return { items: items, chapters: (Array.isArray(o) ? {} : (o.chapters || {})) };
+  }
+  /* --- 表格文本 --- */
+  let sep = '\t';
+  if(raw.indexOf('\t') < 0){
+    if(raw.indexOf(',') >= 0) sep = ',';
+    else if(raw.indexOf('|') >= 0) sep = '|';
+  }
+  let rows = parseTable(raw, sep);
+  /* 丢掉注释行（首格以 # 开头）和全空行 */
+  rows = rows.filter(function(r){
+    const first = String(r[0] == null ? '' : r[0]).trim();
+    if(first.charAt(0) === '#') return false;
+    return r.some(function(x){ return String(x).trim(); });
+  });
+  if(!rows.length) throw new Error('没有有效数据行');
+
+  /* 表头识别：首行每个非空单元格都必须是已知列名，才算表头（避免把数据行当表头） */
+  let map = null;
+  const h0 = rows[0].map(function(c){ return String(c).trim().toLowerCase(); });
+  const allHead = BULK_HEAD.no.concat(BULK_HEAD.ch, BULK_HEAD.q, BULK_HEAD.a);
+  const nonEmpty = h0.filter(function(h){ return !!h; });
+  const hits = h0.filter(function(h){ return allHead.indexOf(h) >= 0; });
+  if(hits.length >= 2 && hits.length === nonEmpty.length){
+    map = {};
+    h0.forEach(function(h, i){
+      if(BULK_HEAD.no.indexOf(h) >= 0) map.no = i;
+      else if(BULK_HEAD.ch.indexOf(h) >= 0) map.ch = i;
+      else if(BULK_HEAD.q.indexOf(h) >= 0) map.q = i;
+      else if(BULK_HEAD.a.indexOf(h) >= 0) map.a = i;
+    });
+    rows = rows.slice(1);
+  }
+
+  const out = [];
+  rows.forEach(function(cols){
+    const c = cols.map(function(x){ return String(x).trim(); });
+    if(!c.length) return;
+    const blank = c.every(function(x){ return !x; });
+    if(blank) return;
+    let no = '', ch = '', q = '', a = '';
+    if(map){
+      no = (map.no != null && c[map.no]) ? c[map.no] : '';
+      ch = (map.ch != null && c[map.ch]) ? c[map.ch] : '';
+      q  = (map.q  != null && c[map.q])  ? c[map.q]  : '';
+      a  = (map.a  != null && c[map.a])  ? c[map.a]  : '';
+      if(!q && !a) return;
+    } else if(c.length >= 4){
+      no = c[0]; ch = c[1]; q = c[2]; a = c.slice(3).join(' ');
+    } else if(c.length === 3){
+      no = c[0]; q = c[1]; a = c[2];
+    } else if(c.length === 2){
+      q = c[0]; a = c[1];
+    } else return;
+    out.push({ no: no, chapterRaw: ch, question: unescNl(q), answer: unescNl(a) });
+  });
+  if(!out.length) throw new Error('没有解析出题目，检查分隔符 / 列数是否正确');
+  return { items: out, chapters: {} };
+}
+
+function renderBulkPreview(parsed){
+  const box = document.getElementById('bulkPrev');
+  const nEl = document.getElementById('bulkN');
+  if(!box) return;
+  if(!parsed){
+    try{ parsed = parseBulk(document.getElementById('bulkText').value); }
+    catch(e){
+      box.innerHTML = '<span class="err">✗ ' + esc(e.message) + '</span>';
+      if(nEl) nEl.textContent = '解析失败';
+      return;
+    }
+  }
+  if(nEl) nEl.textContent = '解析出 ' + parsed.items.length + ' 题';
+  const head = parsed.items.slice(0, 5).map(function(it, i){
+    const q = it.question || '';
+    return (i + 1) + '. [' + esc(it.chapterRaw || '自动章节') + '] ' +
+           esc(it.no ? it.no + ' ' : '') + esc(q.slice(0, 58)) + (q.length > 58 ? '…' : '');
+  }).join('\n');
+  box.innerHTML = '<b>共 ' + parsed.items.length + ' 题</b>（下方预览前 5 条）\n' + head;
+}
+
+function doBulkImport(){
+  const ta = document.getElementById('bulkText');
+  let parsed;
+  try{ parsed = parseBulk(ta.value); }
+  catch(e){ toast('✗ ' + e.message); return; }
+  const bank = bankById(document.getElementById('bulkTarget').value);
+  if(!bank){ toast('✗ 目标题库不存在'); return; }
+  const append = document.getElementById('bulkAppend').checked;
+  if(!append && bank.items.length){
+    if(!confirm('将【替换】题库「' + bank.name + '」现有的 ' + bank.items.length + ' 道题，确定？')) return;
+    bank.items = [];
+  }
+  if(parsed.chapters) Object.assign(bank.chapters, parsed.chapters);
+
+  const keys = Object.keys(bank.chapters).map(Number).filter(function(n){ return !isNaN(n); });
+  let nextCh = keys.length ? Math.max.apply(null, keys) : 0;
+  let maxId = bank.items.reduce(function(m, it){ return Math.max(m, Number(it.id) || 0); }, 0);
+  let added = 0, newCh = 0;
+
+  parsed.items.forEach(function(it){
+    const q = String(it.question || '').trim();
+    if(!q) return;
+    let cid = chapterIdOf(it.chapterRaw, bank.chapters);
+    if(cid === null){
+      const last = bank.items[bank.items.length - 1];
+      cid = (last && Number(last.chapter)) ? Number(last.chapter) : (keys.length ? keys[0] : 1);
+    } else if(cid === -1){
+      do { nextCh++; } while(bank.chapters[nextCh]);
+      cid = nextCh;
+      bank.chapters[cid] = String(it.chapterRaw).trim();
+      newCh++;
+    }
+    if(!bank.chapters[cid]) bank.chapters[cid] = '第' + cid + '章';
+
+    let no = String(it.no || '').trim();
+    if(!no){
+      const cnt = bank.items.filter(function(x){ return Number(x.chapter) === cid; }).length + 1;
+      no = cid + '.' + cnt;
+    } else if(!/^\d/.test(no)){
+      no = cid + '.' + no;
+    }
+    bank.items.push({
+      id: ++maxId,
+      chapter: cid,
+      question: no + ' ' + q,
+      answer: String(it.answer || '')
+    });
+    added++;
+  });
+
+  if(!added){ toast('✗ 没有题目被导入（检查是否所有行都缺少题目列）'); return; }
+
+  activeBank = bank.id;
+  syncRefs();
+  cur = 0; ED.idx = 0;
+  refreshAllViews();
+  paintBanks();
+  saveBank(true);
+  closeMask('bulkMask');
+  toast('✓ 已导入 ' + added + ' 题到「' + bank.name + '」' + (newCh ? '，新建 ' + newCh + ' 个章节' : ''));
+}
+
+function openBulk(){
+  const sel = document.getElementById('bulkTarget');
+  if(sel){
+    sel.innerHTML = BANKS.map(function(b){
+      return '<option value="' + esc(b.id) + '">' + esc(b.name) + '（' + b.items.length + ' 题）</option>';
+    }).join('');
+    sel.value = activeBank;
+  }
+  const ta = document.getElementById('bulkText');
+  if(ta && !ta.value.trim()) ta.value = '';
+  const pv = document.getElementById('bulkPrev');
+  if(pv) pv.innerHTML = '';
+  const fn = document.getElementById('bulkFileName');
+  if(fn) fn.textContent = '未选择文件';
+  const n = document.getElementById('bulkN');
+  if(n) n.textContent = '—';
+  document.getElementById('bulkMask').classList.add('show');
+}
+
+function bulkTemplateCsv(){
+  const keys = Object.keys(CH_NAMES).sort(function(a, b){ return Number(a) - Number(b); });
+  const chName = keys.length ? CH_NAMES[keys[0]] : '第1章 示例章节';
+  const csv = '\uFEFF题号,章节,题目,答案\n' +
+    '1.1,' + chName + ',请简述华为 AI 解决方案的三个层次,1) 硬件层\\n2) 平台层\\n3) 应用层\n' +
+    '1.2,' + chName + ',什么是 ModelArts 的自动学习,面向零代码用户的可视化建模能力\\n支持图像分类、物体检测、预测分析\n' +
+    '# 以 # 开头的行为注释，不会被导入\n';
+  download('题库导入模板.csv', csv, 'text/csv');
+  toast('已下载 CSV 模板：Excel 填好后另存为 CSV，或直接复制粘贴到导入框');
+}
+
+function bulkTemplateJson(){
+  const tpl = {
+    name: '示例题库',
+    chapters: { '1': '第1章 示例章节' },
+    items: [
+      { id: 1, chapter: 1, question: '1.1 这里写题干（首行会作为列表标题）', answer: '这里写答案，支持 Markdown' },
+      { id: 2, chapter: 1, question: '1.2 第二题题干', answer: '第二题答案' }
+    ]
+  };
+  download('题库导入模板.json', JSON.stringify(tpl, null, 2), 'application/json');
+  toast('已下载 JSON 模板');
+}
+
 const ED = { idx: 0, kw: '' };
 
 function edSplit(it){
@@ -1749,7 +2249,7 @@ function edDel(){
 /* ================= 绑定 ================= */
 function bind(){
   document.getElementById('inp').addEventListener('input', e=>{
-    state.draft[DATA[cur].id] = e.target.value;
+    state.draft[pk(DATA[cur].id)] = e.target.value;
     save();
     // 修改后旧比对结果视为过期
     const dw = document.getElementById('diffWrap');
@@ -1763,7 +2263,7 @@ function bind(){
   document.getElementById('btnClear').onclick = ()=>{
     const inp = document.getElementById('inp');
     inp.value = ''; inp.className = '';
-    state.draft[DATA[cur].id] = ''; save();
+    state.draft[pk(DATA[cur].id)] = ''; save();
     document.getElementById('fb').className = 'fb';
     hideDiff();
     inp.focus();
@@ -1844,11 +2344,11 @@ function bind(){
   });
   document.getElementById('btnDwExport').onclick = ()=>{
     download('index.html', buildPageHTML());
-    toast('已导出 index.html（含当前题库）');
+    toast('已导出 index.html（仅含当前题库「' + (curBank() ? curBank().name : '') + '」）');
   };
   document.getElementById('btnDwJson').onclick = ()=>{
-    download('题库.json', JSON.stringify({ chapters: CH_NAMES, items: DATA }, null, 1), 'application/json');
-    toast('已导出 JSON 备份');
+    download('题库.json', bankPayload(), 'application/json');
+    toast('已导出全部 ' + BANKS.length + ' 个题库的 JSON 备份');
   };
   document.getElementById('btnDwImport').onclick = ()=>document.getElementById('dwFile').click();
   document.getElementById('dwFile').onchange = e=>{
@@ -1858,14 +2358,22 @@ function bind(){
     rd.onload = ()=>{
       try{
         const o = JSON.parse(rd.result);
-        if(Array.isArray(o)) DATA = o;
-        else if(o.items){ DATA = o.items; if(o.chapters) CH_NAMES = o.chapters; }
-        else throw new Error('格式不对');
-        saveBank();
+        if(Array.isArray(o)){
+          const cb = curBank();
+          if(!cb) throw new Error('没有当前题库');
+          cb.items = o;
+          syncRefs();
+        } else if(hasBankData(o)){
+          applyRemote(o);
+        } else {
+          throw new Error('格式不对');
+        }
+        saveBank(true);
         ED.idx = 0; cur = 0;
-        buildNav(); refreshStats(); goPractice(0);
-        renderDwList(); fillDrawerForm();
-        toast('已导入 ' + DATA.length + ' 题');
+        refreshAllViews();
+        paintBanks();
+        goPractice(0);
+        toast('已导入：当前题库 ' + DATA.length + ' 题 · 共 ' + BANKS.length + ' 个题库');
       }catch(err){ toast('✗ 导入失败：' + err.message); }
     };
     rd.readAsText(f, 'utf-8');
@@ -1882,8 +2390,12 @@ function bind(){
     }
     clearTimeout(resetArmed); resetArmed = null;
     btn.textContent = '恢复内置';
-    DATA = JSON.parse(BUILTIN_JSON);
-    CH_NAMES = JSON.parse(BUILTIN_CH);
+    const _rb = curBank();
+    if(_rb){
+      _rb.items = JSON.parse(BUILTIN_JSON);
+      _rb.chapters = JSON.parse(BUILTIN_CH);
+    }
+    syncRefs();
     try{ localStorage.removeItem(BANK_KEY); }catch(e){}
     bankMeta.dirty = false; bankMeta.sha = ''; bankMeta.remote = '';
     ED.idx = 0; cur = 0;
@@ -1895,6 +2407,7 @@ function bind(){
     if(e.key === 'Escape'){
       if(document.getElementById('cfgMask').classList.contains('show')){ closeMask('cfgMask'); return; }
       if(document.getElementById('histMask').classList.contains('show')){ closeMask('histMask'); return; }
+      if(document.getElementById('bulkMask').classList.contains('show')){ closeMask('bulkMask'); return; }
       if(document.getElementById('drawer').classList.contains('show')) closeDrawer();
     }
   });
@@ -1923,6 +2436,39 @@ function bind(){
     toast('已保存 GitHub 设置');
   };
 
+  // ===== 多题库 / 批量导入 =====
+  document.getElementById('bankSel').onchange = function(e){ switchBank(e.target.value); };
+  document.getElementById('btnBankNew').onclick = function(){
+    const name = prompt('新题库名称', '新题库 ' + (BANKS.length + 1));
+    if(name === null) return;
+    const b = bankAdd(name.trim() || ('新题库 ' + BANKS.length));
+    toast('已新建「' + b.name + '」，接着批量导入题目吧');
+    openBulk();
+  };
+  document.getElementById('btnBankRename').onclick = bankRename;
+  document.getElementById('btnBankDel').onclick = bankDel;
+  document.getElementById('btnBulk').onclick = openBulk;
+  document.getElementById('bulkClose').onclick = function(){ closeMask('bulkMask'); };
+  document.getElementById('bulkMask').onclick = function(e){ if(e.target.id === 'bulkMask') closeMask('bulkMask'); };
+  document.getElementById('bulkPreviewBtn').onclick = function(){ renderBulkPreview(null); };
+  document.getElementById('bulkDo').onclick = doBulkImport;
+  document.getElementById('bulkTplCsv').onclick = bulkTemplateCsv;
+  document.getElementById('bulkTplJson').onclick = bulkTemplateJson;
+  document.getElementById('bulkPickFile').onclick = function(){ document.getElementById('bulkFile').click(); };
+  document.getElementById('bulkFile').onchange = function(e){
+    const f = e.target.files[0];
+    if(!f) return;
+    const rd = new FileReader();
+    rd.onload = function(){
+      document.getElementById('bulkText').value = String(rd.result);
+      const fn = document.getElementById('bulkFileName');
+      if(fn) fn.textContent = f.name + '（' + Math.max(1, Math.round(f.size / 1024)) + ' KB）';
+      renderBulkPreview(null);
+    };
+    rd.readAsText(f, 'utf-8');
+    e.target.value = '';
+  };
+
   // 重置
   document.getElementById('btnReset').onclick = ()=>{
     if(!confirm('确定清空所有练习记录（掌握 / 需复习 / 草稿）吗？')) return;
@@ -1942,14 +2488,15 @@ function bind(){
 }
 
 /* ================= 启动 ================= */
-buildNav();
+paintBanks();
+refreshAllViews();
 refreshStats();
 // 打开即优先回到最早到期的待复习题
 (function(){
   let idx = -1;
   DATA.forEach((it, i)=>{
-    const r = state.rec[it.id];
-    if(r && dueOf(r) && (idx < 0 || r.due < state.rec[DATA[idx].id].due)) idx = i;
+    const r = recGet(it.id);
+    if(r && dueOf(r) && (idx < 0 || r.due < recGet(DATA[idx].id).due)) idx = i;
   });
   if(idx >= 0) cur = idx;
 })();
