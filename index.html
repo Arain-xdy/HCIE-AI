@@ -382,6 +382,10 @@ body[data-theme="dark"] .lab-hint pre{ background:rgba(255,255,255,.08); }
   padding:10px 12px; letter-spacing:.2px;
   white-space:pre; overflow:auto; tab-size:4;
 }
+/* 覆盖全局 textarea / textarea:focus 的浅色底，vim 区始终深色 */
+.vim .vim-ta, .vim .vim-ta:focus, textarea.vim-ta:focus{
+  background:transparent; color:#eef5ff; border:none; box-shadow:none; border-radius:0;
+}
 .vim-ta::selection{ background:#1d4ed8; color:#ffffff; }
 .vim-ta[readonly]::selection{ background:#334155; color:#ffffff; }
 .vim-ta[readonly]{ color:#cbd9e8; }
@@ -513,7 +517,7 @@ kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;bo
 
 <header class="hd">
   <div class="hd-row">
-    <div class="brand">🎯 HCIE-AI 背诵练习 <small id="verTip">多题库 v9 · 真题 36 + 实验 14</small></div>
+    <div class="brand">🎯 HCIE-AI 背诵练习 <small id="verTip">多题库 v9.1 · 真题 36 + 实验 14</small></div>
     <div class="hd-tools">
       <input class="search" id="search" placeholder="搜索题目 / 答案关键词…">
       <button class="icon-btn" id="btnTheme" title="切换深色模式">🌙</button>
