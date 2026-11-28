@@ -426,6 +426,14 @@ body[data-theme="dark"] .lab-hint pre{ background:rgba(255,255,255,.08); }
   display:flex; gap:14px; padding:3px 12px; background:#131b25; color:#6b7c8f; font-size:11.5px;
 }
 .vim-ft .dirty{ color:#f0c674; margin-left:auto; }
+/* vim 内部消息行（错误 / written 等不再打到终端） */
+.vim-msg{ display:none; padding:4px 12px; background:#131b25; color:#c9d6e2; font-size:12.5px;
+  border-top:1px solid #1e2733; white-space:pre-wrap; word-break:break-word; max-height:76px; overflow:auto; }
+.vim-msg.on{ display:block; }
+.vim-msg.err{ background:#241318; color:#ff9a9a; }
+.vim-msg.ok{ background:#101a14; color:#8ef0b0; }
+/* vim 打开时隐藏终端提示符行，vim 独占终端区域 */
+.term.vim-on .term-in{ display:none; }
 .vim-empty{ color:#6b7c8f; }
 
 /* 检查结果 */
@@ -493,7 +501,7 @@ body[data-theme="dark"] .lc-it.near{ background:#2a2312; }
   .lc-tools{ width:100%; justify-content:flex-end; }
 }
 /* vim：normal 模式禁用鼠标，块状光标 */
-.vim-ta.noclick{ pointer-events:none; caret-color:transparent; }
+.vim-ta.noclick{ caret-color:transparent; user-select:none; }
 .vim-ta.noclick::selection{ background:#1d4ed8; color:#fff; }
 .vim-hd .md.visual{ background:#2b2140; color:#c4b5fd; }
 
@@ -579,7 +587,7 @@ kbd{background:var(--bg);border:1px solid var(--line);border-bottom-width:2px;bo
 
 <header class="hd">
   <div class="hd-row">
-    <div class="brand">🎯 HCIE-AI 背诵练习 <small id="verTip">多题库 v9.11 · 真题 36 + 实验 14</small></div>
+    <div class="brand">🎯 HCIE-AI 背诵练习 <small id="verTip">多题库 v9.12 · 真题 36 + 实验 14</small></div>
     <div class="hd-tools">
       <input class="search" id="search" placeholder="搜索题目 / 答案关键词…">
       <button class="icon-btn" id="btnTheme" title="切换深色模式">🌙</button>
@@ -6723,6 +6731,7 @@ var LAB = (function(){
           '</div>' +
           '<div class="vim-cmdbar" id="vimCmdbar"><span id="vimPrompt">:</span>' +
             '<input id="vimCmdIn" autocomplete="off" spellcheck="false"></div>' +
+          '<div class="vim-msg" id="vimMsg"></div>' +
           '<div class="vim-ft"><span id="vimHintTxt">i/a/o 插入 · Esc 回普通 · h j k l 移动 · 0 $ · w b · gg G · yy 复制 · dd 删除 · p 粘贴 · u 撤销 · v 选择 · /搜索 · :wq 保存退出（鼠标已禁用）</span>' +
             '<span class="dirty" id="vimDirty"></span></div>' +
         '</div>' +
@@ -6749,6 +6758,7 @@ var LAB = (function(){
       vimCmdbar: w.querySelector('#vimCmdbar'),
       vimPrompt: w.querySelector('#vimPrompt'),
       vimCmdIn: w.querySelector('#vimCmdIn'),
+      vimMsg: w.querySelector('#vimMsg'),
       vimDirty: w.querySelector('#vimDirty'),
       check: w.querySelector('#labCheck')
     };
@@ -6764,6 +6774,13 @@ var LAB = (function(){
     span.textContent = text + '\n';
     el.appendChild(span);
     el.scrollTop = el.scrollHeight;
+  }
+  /* vim 内部消息行：错误/保存提示写在 vim 里，不进 shell 输出区 */
+  function vimMsg(text, cls){
+    if(!S.el || !S.el.vimMsg) return;
+    var el = S.el.vimMsg;
+    el.textContent = text || '';
+    el.className = 'vim-msg' + (text ? ' on' : '') + (cls ? ' ' + cls : '');
   }
   function outRaw(html){
     var el = S.el.out;
@@ -7322,6 +7339,7 @@ var LAB = (function(){
 
   /* ---------- vim (v9.2) ---------- */
   function vimOpen(arg){
+    /* 打开 vim 前先让终端命令框失焦，避免按键/输入落到 shell */
     if(!arg) return out('vim: 需要文件名', 'to-err');
     var p = norm(arg, S.cwd);
     if(isDir(p)) return out('vim: ' + arg + ': Is a directory', 'to-err');
@@ -7335,18 +7353,24 @@ var LAB = (function(){
     if(!existed || !S.vim.lines.length) S.vim.lines = [''];
     S.el.vimName.textContent = arg;
     S.el.vim.classList.add('on');
+    if(S.el.term) S.el.term.classList.add('vim-on');
+    try{ S.el.cmd.setAttribute('contenteditable', 'false'); }catch(e){}
     S.el.vimTa.value = S.vim.lines.join('\n');
+    vimMsg('');
     setMode('normal');
     renderVim();
-    S.el.vimTa.focus();
-    out('', 'to-dim');
+    try{ S.el.vimTa.focus({ preventScroll: true }); }catch(e){ S.el.vimTa.focus(); }
   }
 
   function vimClose(){
     S.el.vim.classList.remove('on');
     S.el.vimCmdbar.classList.remove('on');
+    vimMsg('');
+    if(S.el.term) S.el.term.classList.remove('vim-on');
+    try{ S.el.cmd.setAttribute('contenteditable', 'true'); }catch(e){}
     S.vim = null;
     S.el.cmd.focus();
+    try{ setCaret(S.el.cmd, (S.el.cmd.textContent || '').length); }catch(e){}
   }
 
   function setMode(m){
@@ -7381,7 +7405,7 @@ var LAB = (function(){
 
   function vimCaret(){
     var v = S.vim; if(!v) return;
-    if(v.mode === 'insert'){ return; }
+    if(v.mode === 'insert' || v.mode === 'command'){ return; }   /* 输入/命令栏模式不抢焦点 */
     var ta = S.el.vimTa, pos = vimPos();
     var end = (v.mode === 'visual') ? vimPosOf(v.anchor) : pos;
     var a = Math.min(pos, end), b = Math.min(Math.max(pos, end) + 1, ta.value.length);
@@ -7418,7 +7442,7 @@ var LAB = (function(){
     if(!isDir(dirname(v.path))) chain(dirname(v.path)).forEach(function(x){ if(!S.fs[x]) S.fs[x] = {t:'d'}; });
     S.fs[v.path] = {t:'f', c: v.lines.join('\n')};
     v.dirty = false; v.existed = true;
-    out('"' + base(v.path) + '" ' + v.lines.length + 'L written', 'to-ok');
+    vimMsg('"' + base(v.path) + '" ' + v.lines.length + 'L written', 'ok');
     renderVim();
     if(S.item && S.el && S.el.check && S.el.check.classList.contains('on')){ try{ check(S.item, true); }catch(e){} }
 
@@ -7758,10 +7782,14 @@ var LAB = (function(){
     var kind = v.cmdMode;
     S.el.vimCmdbar.classList.remove('on');
     setMode('normal');
+    /* 命令执行完把焦点交回编辑区（vim 若已关闭则由 vimClose 接管） */
+    if(S.vim && S.el.vim.classList.contains('on')){
+      try{ S.el.vimTa.focus({ preventScroll: true }); }catch(e){}
+    }
     if(kind === '/'){ if(c){ v.search = c; vimSearchNext(1); } return; }
     if(c === 'w'){ vimWrite(); return; }
     if(c === 'wq' || c === 'x' || c === 'wq!'){ vimWrite(); vimClose(); return; }
-    if(c === 'q'){ if(v.dirty){ out('E37: No write since last change (add ! to override)', 'to-err'); return; } vimClose(); return; }
+    if(c === 'q'){ if(v.dirty){ vimMsg('E37: No write since last change (add ! to override)', 'err'); return; } vimClose(); return; }
     if(c === 'q!'){ vimClose(); return; }
     if(/^set\s+nu/.test(c)){ return; }
     if(/^\d+$/.test(c)){ vimGoto(parseInt(c, 10) - 1, 0); return; }
@@ -7774,7 +7802,7 @@ var LAB = (function(){
         vimSetLines(v.lines); return;
       }
     }
-    out('E492: Not an editor command: ' + c, 'to-err');
+    vimMsg('E492: Not an editor command: ' + c, 'err');
   }
 
   function vimSearchNext(dir){
@@ -7793,7 +7821,7 @@ var LAB = (function(){
         return;
       }
     }
-    out('E486: Pattern not found: ' + v.search, 'to-err');
+    vimMsg('E486: Pattern not found: ' + v.search, 'err');
   }
 
   /* ---------- 视图渲染 ---------- */
@@ -8267,6 +8295,13 @@ var LAB = (function(){
       window.addEventListener('resize', function(){ try{ syncCmdIndent(); }catch(e){} });
     }
     E.cmd.addEventListener('keydown', function(e){
+      /* vim 打开时终端命令框不得抢键（否则 insert / /input 会被当 shell 命令执行） */
+      if(S.vim && E.vim.classList.contains('on')){
+        e.preventDefault(); e.stopPropagation();
+        try{ E.vimTa.focus({ preventScroll: true }); }catch(_){ E.vimTa.focus(); }
+        vimKey(e);
+        return;
+      }
       if(e.key === 'Tab'){ e.preventDefault(); complete(); return; }
       if(e.key === 'Enter'){ e.preventDefault(); var v = (E.cmd.textContent || '').replace(/[\r\n]+/g, ' '); E.cmd.textContent = ''; E.sug.hidden = true; exec(v); return; }
       if(e.key === 'Escape'){ E.cmd.textContent = ''; E.sug.hidden = true; return; }
@@ -8275,6 +8310,12 @@ var LAB = (function(){
       E.sug.hidden = true;
     });
     E.vimTa.addEventListener('keydown', vimKey);
+    E.vim.addEventListener('mousedown', function(e){
+      if(!S.vim) return;
+      if(e.target === E.vimCmdIn) return;                 /* 命令栏自己处理 */
+      if(E.vimTa.classList.contains('noclick')) e.preventDefault();  /* 普通模式不移动光标 */
+      try{ E.vimTa.focus({ preventScroll: true }); }catch(_){ E.vimTa.focus(); }
+    });
     /* v9.5：禁用鼠标后焦点可能不在编辑区，用 document 兜底接管 vim 按键 */
     document.addEventListener('keydown', function(e){
       var v = S.vim;
@@ -8285,6 +8326,7 @@ var LAB = (function(){
       var ae = document.activeElement;
       if(ae === E.vimCmdIn) return;                 /* 命令栏自行处理 */
       if(ae && ae !== E.vimTa && /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName)) return;  /* 其它输入框不抢 */
+      if(e.target && e.target.isContentEditable) e.preventDefault();  /* 不让字符落进终端命令框 */
       try{ E.vimTa.focus({ preventScroll: true }); }catch(_){ E.vimTa.focus(); }
       vimKey(e);
     });
